@@ -1,19 +1,19 @@
 /* Copyright 2021-2023 nsxiv contributors
  *
- * This file is a part of nsxiv.
+ * This file is a part of rsxiv.
  *
- * nsxiv is free software; you can redistribute it and/or modify
+ * rsxiv is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * nsxiv is distributed in the hope that it will be useful,
+ * rsxiv is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
+ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /*
@@ -24,10 +24,10 @@
  * _XROOTPMAP_ID / ESETROOT_PMAP_ID properties (the Esetroot convention, so
  * compositors and transparent terminals pick it up). The pixmap is created
  * on a private X connection that is closed with RetainPermanent, so it
- * outlives nsxiv.
+ * outlives rsxiv.
  */
 
-#include "nsxiv.h"
+#include "rsxiv.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -172,9 +172,9 @@ static void wp_write_script(const fileinfo_t *file, wpmode_t mode)
 		suffix = "/.config";
 	}
 
-	n = strlen(base) + strlen(suffix) + sizeof("/nsxiv/nsxivbg");
+	n = strlen(base) + strlen(suffix) + sizeof("/rsxiv/rsxivbg");
 	path = emalloc(n);
-	snprintf(path, n, "%s%s/nsxiv/nsxivbg", base, suffix);
+	snprintf(path, n, "%s%s/rsxiv/rsxivbg", base, suffix);
 
 	dir = estrdup(path);
 	if ((slash = strrchr(dir, '/')) != NULL)

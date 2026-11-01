@@ -1,23 +1,23 @@
 /* Copyright 2011-2020 Bert Muennich
  * Copyright 2021-2023 nsxiv contributors
  *
- * This file is a part of nsxiv.
+ * This file is a part of rsxiv.
  *
- * nsxiv is free software; you can redistribute it and/or modify
+ * rsxiv is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * nsxiv is distributed in the hope that it will be useful,
+ * rsxiv is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
+ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nsxiv.h"
+#include "rsxiv.h"
 #define INCLUDE_MAPPINGS_CONFIG
 #include "commands.h"
 #include "config.h"
@@ -58,7 +58,7 @@ typedef struct {
 	char *cmd;
 } extcmd_t;
 
-/* these are not declared in nsxiv.h, as it causes too many -Wshadow warnings */
+/* these are not declared in rsxiv.h, as it causes too many -Wshadow warnings */
 arl_t arl;
 img_t img;
 tns_t tns;
@@ -646,7 +646,7 @@ static bool run_key_handler(const char *key, unsigned int mask)
 	strncpy(win.bar.r.buf, "Running key handler...", win.bar.r.size);
 	win_draw(&win);
 	win_set_cursor(&win, CURSOR_WATCH);
-	setenv("NSXIV_USING_NULL", options->using_null ? "1" : "0", 1);
+	setenv("RSXIV_USING_NULL", options->using_null ? "1" : "0", 1);
 
 	snprintf(kstr, sizeof(kstr), "%s%s%s%s",
 	         mask & ControlMask ? "C-" : "",
@@ -984,7 +984,7 @@ int main(int argc, char *argv[])
 	if (homedir != NULL) {
 		extcmd_t *cmd[] = { &info.f, &info.ft, &keyhandler.f, &wintitle.f };
 		const char *name[] = { "image-info", "thumb-info", "key-handler", "win-title" };
-		const char *s = "/nsxiv/exec/";
+		const char *s = "/rsxiv/exec/";
 
 		for (i = 0; i < (int)ARRLEN(cmd); i++) {
 			n = strlen(homedir) + strlen(dsuffix) + strlen(s) + strlen(name[i]) + 1;

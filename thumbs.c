@@ -1,23 +1,23 @@
 /* Copyright 2011-2020 Bert Muennich
  * Copyright 2021-2023 nsxiv contributors
  *
- * This file is a part of nsxiv.
+ * This file is a part of rsxiv.
  *
- * nsxiv is free software; you can redistribute it and/or modify
+ * rsxiv is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * nsxiv is distributed in the hope that it will be useful,
+ * rsxiv is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
+ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nsxiv.h"
+#include "rsxiv.h"
 #define INCLUDE_THUMBS_CONFIG
 #include "config.h"
 
@@ -36,7 +36,7 @@
 
 static char *cache_dir;
 static char *cache_tmpfile, *cache_tmpfile_base;
-static const char TMP_NAME[] = "/nsxiv-XXXXXX";
+static const char TMP_NAME[] = "/rsxiv-XXXXXX";
 
 static char *tns_cache_filepath(const char *filepath)
 {
@@ -219,7 +219,7 @@ void tns_init(tns_t *tns, fileinfo_t *tns_files, const int *cnt, int *sel, win_t
 		dsuffix = "/.cache";
 	}
 	if (homedir != NULL) {
-		const char *s = "/nsxiv";
+		const char *s = "/rsxiv";
 		free(cache_dir);
 		len = strlen(homedir) + strlen(dsuffix) + strlen(s) + 1;
 		cache_dir = emalloc(len);

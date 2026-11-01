@@ -9,12 +9,12 @@ lib_fonts_1 = -lXft -lfontconfig
 lib_exif_0 =
 lib_exif_1 = -lexif
 
-nsxiv_cppflags = -D_XOPEN_SOURCE=700 \
+rsxiv_cppflags = -D_XOPEN_SOURCE=700 \
   -DHAVE_LIBEXIF=$(HAVE_LIBEXIF) -DHAVE_LIBFONTS=$(HAVE_LIBFONTS) \
   -DHAVE_INOTIFY=$(HAVE_INOTIFY) $(inc_fonts_$(HAVE_LIBFONTS)) \
   $(CPPFLAGS)
 
-nsxiv_ldlibs = -lImlib2 -lX11 \
+rsxiv_ldlibs = -lImlib2 -lX11 \
   $(lib_exif_$(HAVE_LIBEXIF)) $(lib_fonts_$(HAVE_LIBFONTS)) \
   $(LDLIBS)
 
@@ -24,17 +24,17 @@ objs = autoreload.o commands.o image.o main.o options.o \
 .SUFFIXES:
 .SUFFIXES: .c .o
 
-all: nsxiv
+all: rsxiv
 
-nsxiv: $(objs)
+rsxiv: $(objs)
 	@echo "LINK $@"
-	$(CC) $(LDFLAGS) -o $@ $(objs) $(nsxiv_ldlibs)
+	$(CC) $(LDFLAGS) -o $@ $(objs) $(rsxiv_ldlibs)
 
 .c.o:
 	@echo "CC $@"
-	$(CC) $(CFLAGS) $(nsxiv_cppflags) -c -o $@ $<
+	$(CC) $(CFLAGS) $(rsxiv_cppflags) -c -o $@ $<
 
-$(objs): Makefile config.mk nsxiv.h config.h commands.h
+$(objs): Makefile config.mk rsxiv.h config.h commands.h
 options.o: version.h optparse.h
 window.o: icon/data.h utf8.h
 
@@ -53,56 +53,56 @@ version.h: config.mk .git/index
 .git/index:
 
 dump_cppflags:
-	@echo $(nsxiv_cppflags)
+	@echo $(rsxiv_cppflags)
 
 clean:
-	rm -f *.o nsxiv version.h
+	rm -f *.o rsxiv version.h
 
 install-all: install install-desktop install-icon
 
 install-desktop:
-	@echo "INSTALL nsxiv.desktop"
+	@echo "INSTALL rsxiv.desktop"
 	mkdir -p $(DESTDIR)$(PREFIX)/share/applications
-	cp etc/nsxiv.desktop $(DESTDIR)$(PREFIX)/share/applications
+	cp etc/rsxiv.desktop $(DESTDIR)$(PREFIX)/share/applications
 
 install-icon:
 	@echo "INSTALL icon"
 	for f in $(ICONS); do \
 		dir="$(DESTDIR)$(PREFIX)/share/icons/hicolor/$${f%.png}/apps"; \
 		mkdir -p "$$dir"; \
-		cp "icon/$$f" "$$dir/nsxiv.png"; \
-		chmod 644 "$$dir/nsxiv.png"; \
+		cp "icon/$$f" "$$dir/rsxiv.png"; \
+		chmod 644 "$$dir/rsxiv.png"; \
 	done
 
 uninstall-icon:
 	@echo "REMOVE icon"
 	for f in $(ICONS); do \
 		dir="$(DESTDIR)$(PREFIX)/share/icons/hicolor/$${f%.png}/apps"; \
-		rm -f "$$dir/nsxiv.png"; \
+		rm -f "$$dir/rsxiv.png"; \
 	done
 
 install: all
-	@echo "INSTALL bin/nsxiv"
+	@echo "INSTALL bin/rsxiv"
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp nsxiv $(DESTDIR)$(PREFIX)/bin/
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/nsxiv
-	@echo "INSTALL nsxiv.1"
+	cp rsxiv $(DESTDIR)$(PREFIX)/bin/
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/rsxiv
+	@echo "INSTALL rsxiv.1"
 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
 	sed "s!EGPREFIX!$(EGPREFIX)!g; s!PREFIX!$(PREFIX)!g; s!VERSION!$(VERSION)!g" \
-		etc/nsxiv.1 >$(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
-	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
-	@echo "INSTALL share/nsxiv/"
+		etc/rsxiv.1 >$(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
+	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
+	@echo "INSTALL share/rsxiv/"
 	mkdir -p $(DESTDIR)$(EGPREFIX)
 	cp etc/examples/* $(DESTDIR)$(EGPREFIX)
 	chmod 755 $(DESTDIR)$(EGPREFIX)/*
 
 uninstall: uninstall-icon
-	@echo "REMOVE bin/nsxiv"
-	rm -f $(DESTDIR)$(PREFIX)/bin/nsxiv
-	@echo "REMOVE nsxiv.1"
-	rm -f $(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
-	@echo "REMOVE nsxiv.desktop"
-	rm -f $(DESTDIR)$(PREFIX)/share/applications/nsxiv.desktop
-	@echo "REMOVE share/nsxiv/"
+	@echo "REMOVE bin/rsxiv"
+	rm -f $(DESTDIR)$(PREFIX)/bin/rsxiv
+	@echo "REMOVE rsxiv.1"
+	rm -f $(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
+	@echo "REMOVE rsxiv.desktop"
+	rm -f $(DESTDIR)$(PREFIX)/share/applications/rsxiv.desktop
+	@echo "REMOVE share/rsxiv/"
 	rm -rf $(DESTDIR)$(EGPREFIX)
 

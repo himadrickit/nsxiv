@@ -1,0 +1,1287 @@
+From f08f56a4bf24df5eaf0514a79252374dc4cd6a9f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 2 Nov 2026 05:47:42 +0600
+Subject: [PATCH] Rename nsxiv to rsxiv
+
+Rename the program, binary, header (rsxiv.h), man page, desktop file,
+icons, macros, install paths and per-user config paths
+($XDG_CONFIG_HOME/rsxiv/{exec,rsxivbg}) from nsxiv to rsxiv.
+
+Upstream attribution is kept: the "nsxiv contributors" copyright lines,
+links to the upstream nsxiv/sxiv repositories, and the historical
+CHANGELOG are left unchanged. README and the man page now state that
+rsxiv is a fork of nsxiv.
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_019WQWTVvJY66HrhGETqJxqQ
+---
+ .gitignore                           |  2 +-
+ Makefile                             | 56 ++++++++++++-------------
+ README.md                            | 49 +++++++++++-----------
+ autoreload.c                         | 10 ++---
+ commands.c                           | 10 ++---
+ config.def.h                         | 16 +++----
+ config.mk                            |  4 +-
+ etc/CONTRIBUTING.md                  | 10 ++---
+ etc/MIGRATION.md                     | 38 ++++++++---------
+ etc/examples/image-info              |  6 +--
+ etc/examples/key-handler             | 12 +++---
+ etc/examples/thumb-info              |  6 +--
+ etc/examples/win-title               | 12 +++---
+ etc/{nsxiv.1 => rsxiv.1}             | 63 ++++++++++++++--------------
+ etc/{nsxiv.desktop => rsxiv.desktop} |  6 +--
+ etc/woodpecker/try-all-builds.sh     |  2 +-
+ icon/README.md                       |  4 +-
+ image.c                              | 10 ++---
+ main.c                               | 16 +++----
+ options.c                            | 10 ++---
+ nsxiv.h => rsxiv.h                   | 14 +++----
+ thumbs.c                             | 14 +++----
+ util.c                               | 12 +++---
+ wallpaper.c                          | 16 +++----
+ window.c                             | 14 +++----
+ 25 files changed, 206 insertions(+), 206 deletions(-)
+ rename etc/{nsxiv.1 => rsxiv.1} (90%)
+ rename etc/{nsxiv.desktop => rsxiv.desktop} (90%)
+ rename nsxiv.h => rsxiv.h (97%)
+
+diff --git a/.gitignore b/.gitignore
+index b0c0928..500130d 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -2,5 +2,5 @@ config.h
+ version.h
+ *.d
+ *.o
+-nsxiv
++rsxiv
+ icon/img2data
+diff --git a/Makefile b/Makefile
+index ac38b2a..10bc108 100644
+--- a/Makefile
++++ b/Makefile
+@@ -9,12 +9,12 @@ lib_fonts_1 = -lXft -lfontconfig
+ lib_exif_0 =
+ lib_exif_1 = -lexif
+ 
+-nsxiv_cppflags = -D_XOPEN_SOURCE=700 \
++rsxiv_cppflags = -D_XOPEN_SOURCE=700 \
+   -DHAVE_LIBEXIF=$(HAVE_LIBEXIF) -DHAVE_LIBFONTS=$(HAVE_LIBFONTS) \
+   -DHAVE_INOTIFY=$(HAVE_INOTIFY) $(inc_fonts_$(HAVE_LIBFONTS)) \
+   $(CPPFLAGS)
+ 
+-nsxiv_ldlibs = -lImlib2 -lX11 \
++rsxiv_ldlibs = -lImlib2 -lX11 \
+   $(lib_exif_$(HAVE_LIBEXIF)) $(lib_fonts_$(HAVE_LIBFONTS)) \
+   $(LDLIBS)
+ 
+@@ -24,17 +24,17 @@ objs = autoreload.o commands.o image.o main.o options.o \
+ .SUFFIXES:
+ .SUFFIXES: .c .o
+ 
+-all: nsxiv
++all: rsxiv
+ 
+-nsxiv: $(objs)
++rsxiv: $(objs)
+ 	@echo "LINK $@"
+-	$(CC) $(LDFLAGS) -o $@ $(objs) $(nsxiv_ldlibs)
++	$(CC) $(LDFLAGS) -o $@ $(objs) $(rsxiv_ldlibs)
+ 
+ .c.o:
+ 	@echo "CC $@"
+-	$(CC) $(CFLAGS) $(nsxiv_cppflags) -c -o $@ $<
++	$(CC) $(CFLAGS) $(rsxiv_cppflags) -c -o $@ $<
+ 
+-$(objs): Makefile config.mk nsxiv.h config.h commands.h
++$(objs): Makefile config.mk rsxiv.h config.h commands.h
+ options.o: version.h optparse.h
+ window.o: icon/data.h utf8.h
+ 
+@@ -53,56 +53,56 @@ version.h: config.mk .git/index
+ .git/index:
+ 
+ dump_cppflags:
+-	@echo $(nsxiv_cppflags)
++	@echo $(rsxiv_cppflags)
+ 
+ clean:
+-	rm -f *.o nsxiv version.h
++	rm -f *.o rsxiv version.h
+ 
+ install-all: install install-desktop install-icon
+ 
+ install-desktop:
+-	@echo "INSTALL nsxiv.desktop"
++	@echo "INSTALL rsxiv.desktop"
+ 	mkdir -p $(DESTDIR)$(PREFIX)/share/applications
+-	cp etc/nsxiv.desktop $(DESTDIR)$(PREFIX)/share/applications
++	cp etc/rsxiv.desktop $(DESTDIR)$(PREFIX)/share/applications
+ 
+ install-icon:
+ 	@echo "INSTALL icon"
+ 	for f in $(ICONS); do \
+ 		dir="$(DESTDIR)$(PREFIX)/share/icons/hicolor/$${f%.png}/apps"; \
+ 		mkdir -p "$$dir"; \
+-		cp "icon/$$f" "$$dir/nsxiv.png"; \
+-		chmod 644 "$$dir/nsxiv.png"; \
++		cp "icon/$$f" "$$dir/rsxiv.png"; \
++		chmod 644 "$$dir/rsxiv.png"; \
+ 	done
+ 
+ uninstall-icon:
+ 	@echo "REMOVE icon"
+ 	for f in $(ICONS); do \
+ 		dir="$(DESTDIR)$(PREFIX)/share/icons/hicolor/$${f%.png}/apps"; \
+-		rm -f "$$dir/nsxiv.png"; \
++		rm -f "$$dir/rsxiv.png"; \
+ 	done
+ 
+ install: all
+-	@echo "INSTALL bin/nsxiv"
++	@echo "INSTALL bin/rsxiv"
+ 	mkdir -p $(DESTDIR)$(PREFIX)/bin
+-	cp nsxiv $(DESTDIR)$(PREFIX)/bin/
+-	chmod 755 $(DESTDIR)$(PREFIX)/bin/nsxiv
+-	@echo "INSTALL nsxiv.1"
++	cp rsxiv $(DESTDIR)$(PREFIX)/bin/
++	chmod 755 $(DESTDIR)$(PREFIX)/bin/rsxiv
++	@echo "INSTALL rsxiv.1"
+ 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+ 	sed "s!EGPREFIX!$(EGPREFIX)!g; s!PREFIX!$(PREFIX)!g; s!VERSION!$(VERSION)!g" \
+-		etc/nsxiv.1 >$(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
+-	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
+-	@echo "INSTALL share/nsxiv/"
++		etc/rsxiv.1 >$(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
++	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
++	@echo "INSTALL share/rsxiv/"
+ 	mkdir -p $(DESTDIR)$(EGPREFIX)
+ 	cp etc/examples/* $(DESTDIR)$(EGPREFIX)
+ 	chmod 755 $(DESTDIR)$(EGPREFIX)/*
+ 
+ uninstall: uninstall-icon
+-	@echo "REMOVE bin/nsxiv"
+-	rm -f $(DESTDIR)$(PREFIX)/bin/nsxiv
+-	@echo "REMOVE nsxiv.1"
+-	rm -f $(DESTDIR)$(MANPREFIX)/man1/nsxiv.1
+-	@echo "REMOVE nsxiv.desktop"
+-	rm -f $(DESTDIR)$(PREFIX)/share/applications/nsxiv.desktop
+-	@echo "REMOVE share/nsxiv/"
++	@echo "REMOVE bin/rsxiv"
++	rm -f $(DESTDIR)$(PREFIX)/bin/rsxiv
++	@echo "REMOVE rsxiv.1"
++	rm -f $(DESTDIR)$(MANPREFIX)/man1/rsxiv.1
++	@echo "REMOVE rsxiv.desktop"
++	rm -f $(DESTDIR)$(PREFIX)/share/applications/rsxiv.desktop
++	@echo "REMOVE share/rsxiv/"
+ 	rm -rf $(DESTDIR)$(EGPREFIX)
+ 
+diff --git a/README.md b/README.md
+index ce156c9..e13c8d8 100644
+--- a/README.md
++++ b/README.md
+@@ -1,16 +1,15 @@
+-[![nsxiv](https://codeberg.org/nsxiv/pages/raw/branch/master/img/logo.png)](https://codeberg.org/nsxiv/nsxiv)
++# rsxiv
+ 
+-[![Codeberg](https://img.shields.io/badge/Hosted_at-Codeberg-%232185D0?style=flat-square&logo=CodeBerg)](https://codeberg.org/nsxiv/nsxiv)
+-[![tags](https://img.shields.io/github/v/tag/nsxiv/nsxiv?style=flat-square)](https://codeberg.org/nsxiv/nsxiv/tags)
+-[![license](https://img.shields.io/badge/license-GPL--2.0%2B-lightgreen?style=flat-square)](https://codeberg.org/nsxiv/nsxiv/src/branch/master/LICENSE)
+-[![loc](https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/nsxiv/nsxiv/badge?filter=.c$,.h$&color=red&style=flat-square&label=Lines%20of%20Code)](https://codeberg.org/nsxiv/nsxiv)
++rsxiv is a fork of [nsxiv](https://codeberg.org/nsxiv/nsxiv), which is itself a fork of
++[sxiv](https://github.com/xyb3rt/sxiv). All credit for the original work goes to their authors
++and contributors. This fork adds wallpaper support (feh-style `--bg-*` options).
+ 
+ **Neo (or New or Not) Simple (or Small or Suckless) X Image Viewer**
+ --------------------------------------------------------------------
+ 
+ nsxiv is a fork of the now-unmaintained [sxiv](https://github.com/xyb3rt/sxiv)
+ with the purpose of being a (mostly) drop-in replacement for sxiv, maintaining its
+-interface and adding simple, sensible features. nsxiv is free software licensed
++interface and adding simple, sensible features. rsxiv keeps that goal and is free software licensed
+ under GPL-2.0-or-later and aims to be easy to modify and customize.
+ 
+ Please file a bug report if something does not work as documented or expected on
+@@ -56,7 +55,7 @@ Installing via package manager
+   <img align="right" width="192" src="https://repology.org/badge/vertical-allrepos/nsxiv.svg">
+ </a>
+ 
+-nsxiv is available on the following distributions/repositories. If you don't see
++rsxiv is available on the following distributions/repositories. If you don't see
+ your distro listed here, either contact your distro's package maintainer or
+ consider packaging it yourself and adding it to the respective community repo.
+ 
+@@ -64,7 +63,7 @@ consider packaging it yourself and adding it to the respective community repo.
+ Dependencies
+ ------------
+ 
+-nsxiv requires the following software to be installed:
++rsxiv requires the following software to be installed:
+ 
+   * X11
+   * Imlib2 (version 1.11 or later, built with X11 support)
+@@ -79,7 +78,7 @@ The following dependencies are optional:
+     Disable via `HAVE_LIBEXIF=0`.
+ 
+ Please make sure to install the corresponding development packages in case that
+-you want to build nsxiv on a distribution with separate runtime and development
++you want to build rsxiv on a distribution with separate runtime and development
+ packages (e.g. \*-dev on Debian).
+ 
+ \* [inotify][] is a Linux-specific API for monitoring filesystem changes.
+@@ -93,7 +92,7 @@ packages (e.g. \*-dev on Debian).
+ Building
+ --------
+ 
+-nsxiv is built using the commands:
++rsxiv is built using the commands:
+ 
+     $ make
+ 
+@@ -106,7 +105,7 @@ will disable `libexif` support. Alternatively they can be disabled via editing
+ `config.mk`. `OPT_DEP_DEFAULT=0` can be used to disable all optional
+ dependencies.
+ 
+-Installing nsxiv:
++Installing rsxiv:
+ 
+     # make install
+ 
+@@ -123,20 +122,20 @@ Installing all of the above:
+     # make install-all
+ 
+ Please note, that these requires root privileges.
+-By default, nsxiv is installed using the prefix `/usr/local`, so the full path
+-of the executable will be `/usr/local/bin/nsxiv`, the `.desktop` entry will be
+-`/usr/local/share/applications/nsxiv.desktop` and the icon path will be
+-`/usr/local/share/icons/hicolor/{size}/apps/nsxiv.png`.
++By default, rsxiv is installed using the prefix `/usr/local`, so the full path
++of the executable will be `/usr/local/bin/rsxiv`, the `.desktop` entry will be
++`/usr/local/share/applications/rsxiv.desktop` and the icon path will be
++`/usr/local/share/icons/hicolor/{size}/apps/rsxiv.png`.
+ 
+-You can install nsxiv into a directory of your choice by changing this command to:
++You can install rsxiv into a directory of your choice by changing this command to:
+ 
+     $ make PREFIX="/your/dir" install
+ 
+ Example scripts are installed using `EGPREFIX` which defaults to
+-`/usr/local/share/doc/nsxiv/examples`. You can change `EGPREFIX` the same way
++`/usr/local/share/doc/rsxiv/examples`. You can change `EGPREFIX` the same way
+ you can change `PREFIX` shown above.
+ 
+-The build-time specific settings of nsxiv can be found in the file *config.h*.
++The build-time specific settings of rsxiv can be found in the file *config.h*.
+ Please check and change them, so that they fit your needs.
+ If the file *config.h* does not already exist, then you have to create it with
+ the following command:
+@@ -149,7 +148,7 @@ Usage
+ 
+ Refer to the man-page for the documentation:
+ 
+-    $ man nsxiv
++    $ man rsxiv
+ 
+ You may also view the man-page [online](https://nsxiv.codeberg.page/man/).
+ However, note that the online man-page might not accurately represent your local
+@@ -159,16 +158,16 @@ copy.
+ F.A.Q.
+ ------
+ 
+-* Can I open remote urls with nsxiv? <br>
++* Can I open remote urls with rsxiv? <br>
+ Yes, see [nsxiv-url](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/scripts/nsxiv-url)
+ 
+ * Can I open all the images in a directory? <br>
+ Yes, see [nsxiv-rifle](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/scripts/nsxiv-rifle)
+ 
+-* Can I set default arguments for nsxiv? <br>
++* Can I set default arguments for rsxiv? <br>
+ Yes, see [nsxiv-env](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/scripts/nsxiv-env)
+ 
+-* Can I pipe images into nsxiv? <br>
++* Can I pipe images into rsxiv? <br>
+ Yes, see [nsxiv-pipe](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/scripts/nsxiv-pipe)
+ 
+ You may also wish to see the [known issues](https://codeberg.org/nsxiv/nsxiv/issues/242).
+@@ -177,13 +176,13 @@ You may also wish to see the [known issues](https://codeberg.org/nsxiv/nsxiv/iss
+ Customization
+ -------------
+ 
+-The main method of customizing nsxiv is by setting values for the variables in *config.h*,
++The main method of customizing rsxiv is by setting values for the variables in *config.h*,
+ or by using Xresources as explained in the manual. If these options are not sufficient,
+ you may implement your own features by following
+ [this guide](https://codeberg.org/nsxiv/nsxiv-extra/src/branch/master/CUSTOMIZATION.md).
+ 
+ Due to our limited [project scope](etc/CONTRIBUTING.md#project-scope), certain features or
+-customization cannot be merged into nsxiv mainline. Following the spirit of suckless
++customization cannot be merged into rsxiv mainline. Following the spirit of suckless
+ software, we host the [nsxiv-extra](https://codeberg.org/nsxiv/nsxiv-extra) repo where users
+ are free to submit whatever patches or scripts they wish.
+ 
+@@ -209,7 +208,7 @@ You can view the changelog [here](etc/CHANGELOG.md)
+ Similar projects
+ ----------------
+ 
+-If nsxiv isn't able to fit your needs, check out the image viewer section of
++If rsxiv isn't able to fit your needs, check out the image viewer section of
+ **[suckless rocks](https://suckless.org/rocks)** to find other minimal image
+ viewers to try out.
+ 
+diff --git a/autoreload.c b/autoreload.c
+index 5daefe7..8a84533 100644
+--- a/autoreload.c
++++ b/autoreload.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2017 Max Voit, Bert Muennich
+  * Copyright 2022-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ 
+ #if HAVE_INOTIFY
+ 
+diff --git a/commands.c b/commands.c
+index 43b861e..6d1c273 100644
+--- a/commands.c
++++ b/commands.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ 
+ #include "commands.h"
+ 
+diff --git a/config.def.h b/config.def.h
+index d824a47..a562c3f 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -5,15 +5,15 @@ static const int WIN_WIDTH  = 800;
+ static const int WIN_HEIGHT = 600;
+ 
+ /* colors and font can be overwritten via X resource properties.
+- * See nsxiv(1), X(7) section Resources and xrdb(1) for more information.
++ * See rsxiv(1), X(7) section Resources and xrdb(1) for more information.
+  *                                      X resource            value (NULL == default) */
+-static const char *WIN_BG[]   = { "Nsxiv.window.background",   "white" };
+-static const char *WIN_FG[]   = { "Nsxiv.window.foreground",   "black" };
+-static const char *MARK_FG[]  = { "Nsxiv.mark.foreground",      NULL };
++static const char *WIN_BG[]   = { "Rsxiv.window.background",   "white" };
++static const char *WIN_FG[]   = { "Rsxiv.window.foreground",   "black" };
++static const char *MARK_FG[]  = { "Rsxiv.mark.foreground",      NULL };
+ #if HAVE_LIBFONTS
+-static const char *BAR_BG[]   = { "Nsxiv.bar.background",       NULL };
+-static const char *BAR_FG[]   = { "Nsxiv.bar.foreground",       NULL };
+-static const char *BAR_FONT[] = { "Nsxiv.bar.font",            "monospace-8" };
++static const char *BAR_BG[]   = { "Rsxiv.bar.background",       NULL };
++static const char *BAR_FG[]   = { "Rsxiv.bar.foreground",       NULL };
++static const char *BAR_FONT[] = { "Rsxiv.bar.font",            "monospace-8" };
+ 
+ /* if true, statusbar appears on top of the window */
+ static const bool TOP_STATUSBAR = false;
+@@ -72,7 +72,7 @@ static const bool ALPHA_LAYER = false;
+ 
+ /* list of whitelisted/blacklisted directory for thumbnail cache
+  * (overwritten via --cache-{allow,deny} option).
+- * see THUMBNAIL CACHING section in nsxiv(1) manpage for more details.
++ * see THUMBNAIL CACHING section in rsxiv(1) manpage for more details.
+  */
+ static const char TNS_FILTERS[] = "";
+ /* set to true to treat `TNS_FILTERS` as a blacklist instead */
+diff --git a/config.mk b/config.mk
+index dc76466..f756a0f 100644
+--- a/config.mk
++++ b/config.mk
+@@ -1,10 +1,10 @@
+-# nsxiv version
++# rsxiv version
+ VERSION = 34
+ 
+ # PREFIX for install
+ PREFIX = /usr/local
+ MANPREFIX = $(PREFIX)/share/man
+-EGPREFIX = $(PREFIX)/share/doc/nsxiv/examples
++EGPREFIX = $(PREFIX)/share/doc/rsxiv/examples
+ 
+ # default value for optional dependencies. 1 = enabled, 0 = disabled
+ OPT_DEP_DEFAULT = 1
+diff --git a/etc/CONTRIBUTING.md b/etc/CONTRIBUTING.md
+index 9e47c55..4b45cd0 100644
+--- a/etc/CONTRIBUTING.md
++++ b/etc/CONTRIBUTING.md
+@@ -22,13 +22,13 @@ Contribution Guideline
+ 
+ When contributing, make sure:
+ 
+-  * Your contribution falls under nsxiv's scope and aim
++  * Your contribution falls under rsxiv's scope and aim
+   * You follow the existing code style (see the "Code Style" section below)
+   * You open the pull request from a new branch, not from master
+   * To avoid using force pushes, especially for bigger patches. Only use them
+     when there's merge conflicts.
+ 
+-If your contribution is not suitable for general use, it will not be included in nsxiv.
++If your contribution is not suitable for general use, it will not be included in rsxiv.
+ For changes that are very much up to preference, such as changing values in config.h,
+ please do not open a pull request unless you have an objective explanation.
+ 
+@@ -47,7 +47,7 @@ to work on. You can also filter the issues via label:
+ Code Style
+ ----------
+ 
+-`nsxiv` mostly follows the [suckless code-style][sl], with a few exceptions.
++`rsxiv` mostly follows the [suckless code-style][sl], with a few exceptions.
+ If your editor supports [.editorconfig](../.editorconfig) then you'll already be
+ off to a good start without needing much manual intervention. Additionally we
+ provide a [clang-format](./.clang-format) configuration for reference, which you
+@@ -70,14 +70,14 @@ Using LLM ("AI") assistance is allowed within the following criteria:
+ 2. Do NOT use LLMs to write commit message, issue/pull-request description or
+    comments. These are mediums for humans to communicate with other humans.
+ 
+-Note: The first rule is more relaxed for the `nsxiv-extra` repo.
++Note: The first rule is more relaxed for the `rsxiv-extra` repo.
+ 
+ 
+ Development workflow for maintainers
+ ------------------------------------
+ 
+ If we notice you contributing and/or showing interest in issues/pull requests,
+-we may invite you to join the nsxiv org as a member. Being a member simply means
++we may invite you to join the rsxiv org as a member. Being a member simply means
+ you will be able to approve, disapprove and merge pull requests.
+ 
+ Our workflow regarding pull requests is the following:
+diff --git a/etc/MIGRATION.md b/etc/MIGRATION.md
+index db776e0..4c165f7 100644
+--- a/etc/MIGRATION.md
++++ b/etc/MIGRATION.md
+@@ -1,6 +1,6 @@
+ # Migrating from `sxiv`
+ 
+-`nsxiv` is *mostly* a drop-in replacement for `sxiv`, but not fully.
++`rsxiv` is *mostly* a drop-in replacement for `sxiv`, but not fully.
+ This document outlines some key differences to be aware of if you're migrating
+ from `sxiv`.
+ 
+@@ -10,44 +10,44 @@ from `sxiv`.
+ `${XDG_CONFIG_HOME:-${HOME}/.config}/sxiv`. E.g
+ `~/.config/sxiv/exec/key-handler`.
+ 
+-`nsxiv` uses the same logic to find the config dir but uses the name "nsxiv".
+-E.g `~/.config/nsxiv/...`.
++`rsxiv` uses the same logic to find the config dir but uses the name "rsxiv".
++E.g `~/.config/rsxiv/...`.
+ 
+-The "exec" scripts such as `key-handler` and `image-info` in `nsxiv` has some
++The "exec" scripts such as `key-handler` and `image-info` in `rsxiv` has some
+ more features, but all previous argument order are preserved. And so if you have
+ any exec scripts, you can simply copy them over and they should just work.
+ 
+ ### Xresources
+ 
+-The xresources config for `nsxiv` is under the "Nsxiv" namespace whereas `sxiv`
++The xresources config for `rsxiv` is under the "Rsxiv" namespace whereas `sxiv`
+ uses the "Sxiv" namespace. Some of the variables are also different between
+-`nsxiv` and `sxiv`, below is a table that shows the old and new names:
++`rsxiv` and `sxiv`, below is a table that shows the old and new names:
+ 
+-| sxiv                | nsxiv                    |
++| sxiv                | rsxiv                    |
+ | :--                 | :--                      |
+-| Sxiv.background     | Nsxiv.window.background  |
+-| Sxiv.foreground     | Nsxiv.window.foreground  |
+-| Sxiv.barBackground  | Nsxiv.bar.background     |
+-| Sxiv.barForeground  | Nsxiv.bar.foreground     |
+-| Sxiv.font           | Nsxiv.bar.font           |
++| Sxiv.background     | Rsxiv.window.background  |
++| Sxiv.foreground     | Rsxiv.window.foreground  |
++| Sxiv.barBackground  | Rsxiv.bar.background     |
++| Sxiv.barForeground  | Rsxiv.bar.foreground     |
++| Sxiv.font           | Rsxiv.bar.font           |
+ 
+ ### Default window class
+ 
+-The window class of `nsxiv` is set to "Nsxiv" by default (can be overwritten via
++The window class of `rsxiv` is set to "Rsxiv" by default (can be overwritten via
+ `-N` flag). This usually shouldn't matter, unless you have scripts that search
+ for "Sxiv" window class.
+ 
+ ### Thumbnail cache directory
+ 
+-Similar to config dir, the thumbnail cache dir of `nsxiv` is under the "nsxiv"
+-name instead of "sxiv". E.g `~/.cache/nsxiv`.
++Similar to config dir, the thumbnail cache dir of `rsxiv` is under the "rsxiv"
++name instead of "sxiv". E.g `~/.cache/rsxiv`.
+ 
+-The "caching structure" in `nsxiv` is the same as `sxiv`. Which means that you
+-can simply rename the directory to `nsxiv`:
++The "caching structure" in `rsxiv` is the same as `sxiv`. Which means that you
++can simply rename the directory to `rsxiv`:
+ 
+ ```console
+-$ mv  ~/.cache/sxiv  ~/.cache/nsxiv
++$ mv  ~/.cache/sxiv  ~/.cache/rsxiv
+ ```
+ 
+-If you want to have both `sxiv` and `nsxiv` installed at the same time, you can
++If you want to have both `sxiv` and `rsxiv` installed at the same time, you can
+ even use symlink to avoid duplicate cache.
+diff --git a/etc/examples/image-info b/etc/examples/image-info
+index 5f06123..4df3536 100755
+--- a/etc/examples/image-info
++++ b/etc/examples/image-info
+@@ -1,8 +1,8 @@
+ #!/bin/sh
+ 
+-# Example for $XDG_CONFIG_HOME/nsxiv/exec/image-info
+-# Called by nsxiv(1) whenever an image gets loaded.
+-# The output is displayed in nsxiv's status bar.
++# Example for $XDG_CONFIG_HOME/rsxiv/exec/image-info
++# Called by rsxiv(1) whenever an image gets loaded.
++# The output is displayed in rsxiv's status bar.
+ # Arguments:
+ #   $1: path to image file (as provided by the user)
+ #   $2: image width
+diff --git a/etc/examples/key-handler b/etc/examples/key-handler
+index 2bcc015..5c33684 100755
+--- a/etc/examples/key-handler
++++ b/etc/examples/key-handler
+@@ -1,10 +1,10 @@
+ #!/bin/sh
+ 
+-# Example for $XDG_CONFIG_HOME/nsxiv/exec/key-handler
+-# Called by nsxiv(1) after the external prefix key (C-x by default) is pressed.
++# Example for $XDG_CONFIG_HOME/rsxiv/exec/key-handler
++# Called by rsxiv(1) after the external prefix key (C-x by default) is pressed.
+ # The next key combo is passed as its first argument. Passed via stdin are the
+ # images to act upon: all marked images, if in thumbnail mode and at least one
+-# image has been marked, otherwise the current image. nsxiv(1) will block until
++# image has been marked, otherwise the current image. rsxiv(1) will block until
+ # the handler terminates. It then checks which images have been modified and
+ # reloads them.
+ 
+@@ -14,11 +14,11 @@
+ # If KEY has an uppercase equivalent, S-KEY is resolved into it. For instance,
+ # K replaces S-k and Scedilla replaces S-scedilla, but S-Delete is sent as-is.
+ 
+-# By default nsxiv(1) will send one image per-line to stdin, however when using
++# By default rsxiv(1) will send one image per-line to stdin, however when using
+ # -0 the image list will be NULL separated and the environment variable
+-# "$NSXIV_USING_NULL" will be set to 1.
++# "$RSXIV_USING_NULL" will be set to 1.
+ 
+-[ "$NSXIV_USING_NULL" = 1 ] && DELIM='\0' || DELIM='\n'
++[ "$RSXIV_USING_NULL" = 1 ] && DELIM='\0' || DELIM='\n'
+ 
+ rotate() {
+ 	tr "$DELIM" '\0' | xargs -0 realpath -z | sort -z -u | xargs -0 -I {} sh -c '
+diff --git a/etc/examples/thumb-info b/etc/examples/thumb-info
+index b422f9c..510f553 100755
+--- a/etc/examples/thumb-info
++++ b/etc/examples/thumb-info
+@@ -1,8 +1,8 @@
+ #!/bin/sh
+ 
+-# Example for $XDG_CONFIG_HOME/nsxiv/exec/thumb-info
+-# Called by nsxiv(1) whenever the selected thumbnail changes.
+-# The output is displayed in nsxiv's status bar.
++# Example for $XDG_CONFIG_HOME/rsxiv/exec/thumb-info
++# Called by rsxiv(1) whenever the selected thumbnail changes.
++# The output is displayed in rsxiv's status bar.
+ # Arguments:
+ #   $1: path to image file (as provided by the user)
+ #   $2: empty
+diff --git a/etc/examples/win-title b/etc/examples/win-title
+index 31994ef..72e797d 100755
+--- a/etc/examples/win-title
++++ b/etc/examples/win-title
+@@ -1,8 +1,8 @@
+ #!/bin/sh
+ 
+-# Example for $XDG_CONFIG_HOME/nsxiv/exec/win-title
+-# Called by nsxiv(1) whenever any of the relevant information changes.
+-# The output is set as nsxiv's window title.
++# Example for $XDG_CONFIG_HOME/rsxiv/exec/win-title
++# Called by rsxiv(1) whenever any of the relevant information changes.
++# The output is set as rsxiv's window title.
+ #
+ # Arguments, "Optional" arguments might be empty:
+ #   $1: resolved absolute path of the current file
+@@ -12,7 +12,7 @@
+ #   $5: image height (Optional: Disabled on thumbnails mode)
+ #   $6: current zoom (Optional: Disabled on thumbnails mode)
+ #
+-# The term file is used rather than image as nsxiv does not
++# The term file is used rather than image as rsxiv does not
+ # precheck that the input files are valid images. Total file
+ # count may be different from the actual count of valid images.
+ 
+@@ -21,7 +21,7 @@ exec 2>/dev/null
+ filename="${1##*/}"
+ 
+ if [ -n "$4" ]; then # image mode
+-	printf "%s" "nsxiv - ${filename} | ${4}x${5} ${6}% [${2}/${3}]"
++	printf "%s" "rsxiv - ${filename} | ${4}x${5} ${6}% [${2}/${3}]"
+ else
+-	printf "%s" "nsxiv - ${filename} [${2}/${3}]"
++	printf "%s" "rsxiv - ${filename} [${2}/${3}]"
+ fi
+diff --git a/etc/nsxiv.1 b/etc/rsxiv.1
+similarity index 90%
+rename from etc/nsxiv.1
+rename to etc/rsxiv.1
+index 00fcd5f..ba1dd6a 100644
+--- a/etc/nsxiv.1
++++ b/etc/rsxiv.1
+@@ -1,8 +1,8 @@
+-.TH NSXIV 1 nsxiv\-VERSION
++.TH RSXIV 1 rsxiv\-VERSION
+ .SH NAME
+-nsxiv \- Neo Simple X Image Viewer
++rsxiv \- Neo Simple X Image Viewer
+ .SH SYNOPSIS
+-.B nsxiv
++.B rsxiv
+ .RB [ \-abcfHhiopqrtvZ0 ]
+ .RB [ \-A
+ .IR FRAMERATE ]
+@@ -26,7 +26,7 @@ nsxiv \- Neo Simple X Image Viewer
+ .RB [ \-\-no\-bgscript ]
+ .IR FILE ...
+ .SH DESCRIPTION
+-nsxiv is a simple image viewer for X.
++rsxiv is a simple image viewer for X.
+ .P
+ It has two modes of operation: image and thumbnail mode. The default is image
+ mode, in which only the current image is shown. In thumbnail mode a grid of
+@@ -59,7 +59,7 @@ is equivalent to
+ Remove all orphaned cache files from the thumbnail cache directory and exit.
+ .TP
+ .BI "\-e, \-\-embed " WID
+-Embed nsxiv's window into window whose ID is
++Embed rsxiv's window into window whose ID is
+ .IR WID .
+ .TP
+ .B "\-f, \-\-fullscreen"
+@@ -93,10 +93,10 @@ Start at picture number NUM.
+ Write list of all marked files to standard output when quitting. In combination
+ with
+ .B "\-i, \-\-stdin"
+-nsxiv can be used as a visual filter/pipe.
++rsxiv can be used as a visual filter/pipe.
+ .TP
+ .B "\-p, \-\-private"
+-Enable private mode, in which nsxiv does not write any cache or temporary files.
++Enable private mode, in which rsxiv does not write any cache or temporary files.
+ .TP
+ .B "\-q, \-\-quiet"
+ Be quiet, and disable warnings to standard error stream.
+@@ -201,10 +201,10 @@ Prefix the next command with a number (denoted via
+ .IR count ).
+ .TP
+ .B q
+-Quit nsxiv.
++Quit rsxiv.
+ .TP
+ .B Q
+-Quit nsxiv, but additionally print the current filename when \-o is active and
++Quit rsxiv, but additionally print the current filename when \-o is active and
+ no files have been marked.
+ .TP
+ .B Return
+@@ -514,8 +514,8 @@ Zoom in.
+ .B Button5
+ Zoom out.
+ .SH CONFIGURATION
+-The following X resources are supported under "Nsxiv" (e.g.
+-.B Nsxiv.bar.font
++The following X resources are supported under "Rsxiv" (e.g.
++.B Rsxiv.bar.font
+ ):
+ .TP
+ .B window.background
+@@ -547,15 +547,15 @@ root window background and published through the
+ and
+ .I ESETROOT_PMAP_ID
+ properties, so compositors and pseudo-transparent terminals can pick it up. The
+-pixmap is retained by the X server after nsxiv exits, and the one from a
++pixmap is retained by the X server after rsxiv exits, and the one from a
+ previous wallpaper is released when it is replaced.
+ .P
+ Unless
+ .B \-\-no\-bgscript
+-is given, nsxiv also writes
+-.I $XDG_CONFIG_HOME/nsxiv/nsxivbg
++is given, rsxiv also writes
++.I $XDG_CONFIG_HOME/rsxiv/rsxivbg
+ (or
+-.I ~/.config/nsxiv/nsxivbg
++.I ~/.config/rsxiv/rsxivbg
+ if
+ .I $XDG_CONFIG_HOME
+ is unset), a shell script that restores the last wallpaper. It is the
+@@ -564,9 +564,9 @@ counterpart of feh's
+ and can be run from your X startup file.
+ .SH WINDOW TITLE
+ The window title can be replaced with the output of a user-provided script,
+-which is called by nsxiv whenever any of the relevant information changes.
++which is called by rsxiv whenever any of the relevant information changes.
+ The path of this script is
+-.I $XDG_CONFIG_HOME/nsxiv/exec/win-title
++.I $XDG_CONFIG_HOME/rsxiv/exec/win-title
+ and the arguments given to it (where "Optional" arguments might be empty) are:
+ .IP $1 4
+ resolved absolute path of the current file
+@@ -581,18 +581,18 @@ image height (Optional: Disabled on thumbnails mode)
+ .IP $6 4
+ current zoom (Optional: Disabled on thumbnails mode)
+ .P
+-The term file is used rather than image as nsxiv does not precheck that the
++The term file is used rather than image as rsxiv does not precheck that the
+ input files are valid images. Total file count may be different from the actual
+ count of valid images.
+ .P
+-There is also an example script installed together with nsxiv as
++There is also an example script installed together with rsxiv as
+ .IR EGPREFIX/win-title .
+ .SH STATUS BAR
+ The information displayed on the left side of the status bar can be replaced
+ with the output of user-provided script.
+ .P
+-The script that is called by nsxiv whenever an image gets loaded is located at
+-.I $XDG_CONFIG_HOME/nsxiv/exec/image-info
++The script that is called by rsxiv whenever an image gets loaded is located at
++.I $XDG_CONFIG_HOME/rsxiv/exec/image-info
+ and the arguments given to it are:
+ .IP $1 4
+ path to image file (as provided by the user)
+@@ -604,7 +604,7 @@ image height
+ fully resolved path to the image file
+ .P
+ In thumbnail mode, the script that is called is located at
+-.I $XDG_CONFIG_HOME/nsxiv/exec/thumb-info
++.I $XDG_CONFIG_HOME/rsxiv/exec/thumb-info
+ and the arguments given to it are:
+ .IP $1 4
+ path to image file (as provided by the user)
+@@ -615,25 +615,25 @@ empty
+ .IP $4 4
+ fully resolved path to the image file
+ .P
+-There are also example scripts installed together with nsxiv as
++There are also example scripts installed together with rsxiv as
+ .IR EGPREFIX/image-info
+ and
+ .IR EGPREFIX/thumb-info .
+ .SH EXTERNAL KEY HANDLER
+ Additional external keyboard commands can be defined using a handler program
+ located in
+-.IR $XDG_CONFIG_HOME/nsxiv/exec/key-handler .
++.IR $XDG_CONFIG_HOME/rsxiv/exec/key-handler .
+ The handler is invoked by pressing
+ .BR Ctrl-x .
+ The next key combo is passed as its first argument. Passed via stdin are the
+ images to act upon: all marked images, if in thumbnail mode and at least one
+-image has been marked, otherwise the current image. nsxiv(1) will block until
++image has been marked, otherwise the current image. rsxiv(1) will block until
+ the handler terminates. It then checks which images have been modified and
+ reloads them.
+ 
+-By default nsxiv(1) will send one image per-line to stdin, however when using
++By default rsxiv(1) will send one image per-line to stdin, however when using
+ \-0 the image list will be NULL separated and the environment variable
+-"$NSXIV_USING_NULL" will be set to 1.
++"$RSXIV_USING_NULL" will be set to 1.
+ 
+ The key combo argument has the following form: "[C-][M-][S-]KEY",
+ where C/M/S indicate Ctrl/Meta(Alt)/Shift modifier states and KEY is the X
+@@ -641,11 +641,11 @@ keysym as listed in /usr/include/X11/keysymdef.h without the "XK_" prefix.
+ If KEY has an uppercase equivalent, S-KEY is resolved into it. For instance,
+ K replaces S-k and Scedilla replaces S-scedilla, but S-Delete is sent as-is.
+ 
+-There is also an example script installed together with nsxiv as
++There is also an example script installed together with rsxiv as
+ .IR EGPREFIX/key-handler .
+ .SH THUMBNAIL CACHING
+-nsxiv stores all thumbnails under
+-.IR $XDG_CACHE_HOME/nsxiv/ .
++rsxiv stores all thumbnails under
++.IR $XDG_CACHE_HOME/rsxiv/ .
+ .P
+ Use the command line option
+ .I \-c
+@@ -688,9 +688,10 @@ explosion-mental       <explosion0mental at gmail.com>
+ .EE
+ .SH CONTRIBUTORS
+ .EX
+-For a list of contributors, run `git shortlog -s` in the nsxiv git repository.
++For a list of contributors, run `git shortlog -s` in the rsxiv git repository.
+ .EE
+ .SH HOMEPAGE
++rsxiv is a fork of nsxiv. Upstream project:
+ .TP
+ Website:
+ .EE
+diff --git a/etc/nsxiv.desktop b/etc/rsxiv.desktop
+similarity index 90%
+rename from etc/nsxiv.desktop
+rename to etc/rsxiv.desktop
+index de90437..b26e641 100644
+--- a/etc/nsxiv.desktop
++++ b/etc/rsxiv.desktop
+@@ -1,8 +1,8 @@
+ [Desktop Entry]
+ Type=Application
+-Name=nsxiv
++Name=rsxiv
+ GenericName=Image Viewer
+-Exec=nsxiv %F
++Exec=rsxiv %F
+ MimeType=image/bmp;image/gif;image/jpeg;image/jpg;image/png;image/tiff;image/x-bmp;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-tga;image/x-xpixmap;image/webp;image/heic;image/svg+xml;application/postscript;image/jp2;image/jxl;image/avif;image/heif;
+ NoDisplay=true
+-Icon=nsxiv
++Icon=rsxiv
+diff --git a/etc/woodpecker/try-all-builds.sh b/etc/woodpecker/try-all-builds.sh
+index 89e41f1..9e66fff 100755
+--- a/etc/woodpecker/try-all-builds.sh
++++ b/etc/woodpecker/try-all-builds.sh
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ #
+ # Shell script that checks for all possible build combination with TCC.
+-# Usage: call the script while in the nsxiv root directory
++# Usage: call the script while in the rsxiv root directory
+ 
+ set -- $(grep -o '^HAVE_[[:alpha:]]* ' config.mk)
+ CFLAGS="$(sed '/^#/d' etc/woodpecker/CFLAGS | paste -d ' ' -s)"
+diff --git a/icon/README.md b/icon/README.md
+index 3ddd7f8..936de25 100644
+--- a/icon/README.md
++++ b/icon/README.md
+@@ -2,7 +2,7 @@ img2data
+ --------
+ 
+ img2data is a helper program to convert images to binary data for embedding in
+-software. The generated data is used in nsxiv to set the window icons.
++software. The generated data is used in rsxiv to set the window icons.
+ 
+ 
+ How It Works
+@@ -40,4 +40,4 @@ img2data is used as the following:
+     $ ./img2data 16x16.png 32x32.png 48x48.png 64x64.png 128x128.png
+ 
+ You may replace or omit any image, but you must have a `data.gen.h` with at
+-least 1 image for nsxiv to compile.
++least 1 image for rsxiv to compile.
+diff --git a/image.c b/image.c
+index c1704f0..4cbbcff 100644
+--- a/image.c
++++ b/image.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ #define INCLUDE_IMAGE_CONFIG
+ #include "config.h"
+ 
+diff --git a/main.c b/main.c
+index 9e5a708..a281a6d 100644
+--- a/main.c
++++ b/main.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ #define INCLUDE_MAPPINGS_CONFIG
+ #include "commands.h"
+ #include "config.h"
+@@ -58,7 +58,7 @@ typedef struct {
+ 	char *cmd;
+ } extcmd_t;
+ 
+-/* these are not declared in nsxiv.h, as it causes too many -Wshadow warnings */
++/* these are not declared in rsxiv.h, as it causes too many -Wshadow warnings */
+ arl_t arl;
+ img_t img;
+ tns_t tns;
+@@ -646,7 +646,7 @@ static bool run_key_handler(const char *key, unsigned int mask)
+ 	strncpy(win.bar.r.buf, "Running key handler...", win.bar.r.size);
+ 	win_draw(&win);
+ 	win_set_cursor(&win, CURSOR_WATCH);
+-	setenv("NSXIV_USING_NULL", options->using_null ? "1" : "0", 1);
++	setenv("RSXIV_USING_NULL", options->using_null ? "1" : "0", 1);
+ 
+ 	snprintf(kstr, sizeof(kstr), "%s%s%s%s",
+ 	         mask & ControlMask ? "C-" : "",
+@@ -984,7 +984,7 @@ int main(int argc, char *argv[])
+ 	if (homedir != NULL) {
+ 		extcmd_t *cmd[] = { &info.f, &info.ft, &keyhandler.f, &wintitle.f };
+ 		const char *name[] = { "image-info", "thumb-info", "key-handler", "win-title" };
+-		const char *s = "/nsxiv/exec/";
++		const char *s = "/rsxiv/exec/";
+ 
+ 		for (i = 0; i < (int)ARRLEN(cmd); i++) {
+ 			n = strlen(homedir) + strlen(dsuffix) + strlen(s) + strlen(name[i]) + 1;
+diff --git a/options.c b/options.c
+index a650000..d738f6b 100644
+--- a/options.c
++++ b/options.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ #include "version.h"
+ #define INCLUDE_OPTIONS_CONFIG
+ #include "config.h"
+diff --git a/nsxiv.h b/rsxiv.h
+similarity index 97%
+rename from nsxiv.h
+rename to rsxiv.h
+index a94e873..3c7e0c6 100644
+--- a/nsxiv.h
++++ b/rsxiv.h
+@@ -1,24 +1,24 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#ifndef NSXIV_H
+-#define NSXIV_H
++#ifndef RSXIV_H
++#define RSXIV_H
+ 
+ #if !defined(DEBUG) && !defined(NDEBUG)
+ 	#define NDEBUG
+@@ -511,4 +511,4 @@ extern int markcnt;
+ extern int markidx;
+ extern int prefix;
+ 
+-#endif /* NSXIV_H */
++#endif /* RSXIV_H */
+diff --git a/thumbs.c b/thumbs.c
+index 6377636..f28a647 100644
+--- a/thumbs.c
++++ b/thumbs.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ #define INCLUDE_THUMBS_CONFIG
+ #include "config.h"
+ 
+@@ -36,7 +36,7 @@
+ 
+ static char *cache_dir;
+ static char *cache_tmpfile, *cache_tmpfile_base;
+-static const char TMP_NAME[] = "/nsxiv-XXXXXX";
++static const char TMP_NAME[] = "/rsxiv-XXXXXX";
+ 
+ static char *tns_cache_filepath(const char *filepath)
+ {
+@@ -219,7 +219,7 @@ void tns_init(tns_t *tns, fileinfo_t *tns_files, const int *cnt, int *sel, win_t
+ 		dsuffix = "/.cache";
+ 	}
+ 	if (homedir != NULL) {
+-		const char *s = "/nsxiv";
++		const char *s = "/rsxiv";
+ 		free(cache_dir);
+ 		len = strlen(homedir) + strlen(dsuffix) + strlen(s) + 1;
+ 		cache_dir = emalloc(len);
+diff --git a/util.c b/util.c
+index 7ed9a91..94cace0 100644
+--- a/util.c
++++ b/util.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ 
+ #include <assert.h>
+ #include <errno.h>
+@@ -32,7 +32,7 @@
+ #include <unistd.h>
+ 
+ extern char **environ;
+-const char *progname = "nsxiv";
++const char *progname = "rsxiv";
+ 
+ void *emalloc(size_t size)
+ {
+diff --git a/wallpaper.c b/wallpaper.c
+index 86f7795..a7e74c5 100644
+--- a/wallpaper.c
++++ b/wallpaper.c
+@@ -1,19 +1,19 @@
+ /* Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+ /*
+@@ -24,10 +24,10 @@
+  * _XROOTPMAP_ID / ESETROOT_PMAP_ID properties (the Esetroot convention, so
+  * compositors and transparent terminals pick it up). The pixmap is created
+  * on a private X connection that is closed with RetainPermanent, so it
+- * outlives nsxiv.
++ * outlives rsxiv.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ 
+ #include <errno.h>
+ #include <stdio.h>
+@@ -172,9 +172,9 @@ static void wp_write_script(const fileinfo_t *file, wpmode_t mode)
+ 		suffix = "/.config";
+ 	}
+ 
+-	n = strlen(base) + strlen(suffix) + sizeof("/nsxiv/nsxivbg");
++	n = strlen(base) + strlen(suffix) + sizeof("/rsxiv/rsxivbg");
+ 	path = emalloc(n);
+-	snprintf(path, n, "%s%s/nsxiv/nsxivbg", base, suffix);
++	snprintf(path, n, "%s%s/rsxiv/rsxivbg", base, suffix);
+ 
+ 	dir = estrdup(path);
+ 	if ((slash = strrchr(dir, '/')) != NULL)
+diff --git a/window.c b/window.c
+index 42c3f2b..fd876cd 100644
+--- a/window.c
++++ b/window.c
+@@ -1,23 +1,23 @@
+ /* Copyright 2011-2020 Bert Muennich
+  * Copyright 2021-2023 nsxiv contributors
+  *
+- * This file is a part of nsxiv.
++ * This file is a part of rsxiv.
+  *
+- * nsxiv is free software; you can redistribute it and/or modify
++ * rsxiv is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published
+  * by the Free Software Foundation; either version 2 of the License,
+  * or (at your option) any later version.
+  *
+- * nsxiv is distributed in the hope that it will be useful,
++ * rsxiv is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-#include "nsxiv.h"
++#include "rsxiv.h"
+ #define INCLUDE_WINDOW_CONFIG
+ #include "config.h"
+ #include "icon/data.h"
+@@ -39,7 +39,7 @@
+ 	win_draw_text(win, NULL, NULL, 0, 0, text, len, 0)
+ #endif
+ 
+-#define RES_CLASS "Nsxiv"
++#define RES_CLASS "Rsxiv"
+ #define INIT_ATOM_(atom) \
+ 	atoms[ATOM_##atom] = XInternAtom(e->dpy, #atom, False);
+ 
+@@ -202,7 +202,7 @@ void win_open(win_t *win)
+ 	char hostname[256];
+ 	XSetWindowAttributes attrs;
+ 	char res_class[] = RES_CLASS;
+-	char res_name[] = "nsxiv";
++	char res_name[] = "rsxiv";
+ 
+ 	e = &win->env;
+ 	parent = options->embed ? options->embed : RootWindow(e->dpy, e->scr);
+-- 
+2.43.0

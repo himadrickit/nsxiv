@@ -5,15 +5,15 @@ static const int WIN_WIDTH  = 800;
 static const int WIN_HEIGHT = 600;
 
 /* colors and font can be overwritten via X resource properties.
- * See nsxiv(1), X(7) section Resources and xrdb(1) for more information.
+ * See rsxiv(1), X(7) section Resources and xrdb(1) for more information.
  *                                      X resource            value (NULL == default) */
-static const char *WIN_BG[]   = { "Nsxiv.window.background",   "white" };
-static const char *WIN_FG[]   = { "Nsxiv.window.foreground",   "black" };
-static const char *MARK_FG[]  = { "Nsxiv.mark.foreground",      NULL };
+static const char *WIN_BG[]   = { "Rsxiv.window.background",   "white" };
+static const char *WIN_FG[]   = { "Rsxiv.window.foreground",   "black" };
+static const char *MARK_FG[]  = { "Rsxiv.mark.foreground",      NULL };
 #if HAVE_LIBFONTS
-static const char *BAR_BG[]   = { "Nsxiv.bar.background",       NULL };
-static const char *BAR_FG[]   = { "Nsxiv.bar.foreground",       NULL };
-static const char *BAR_FONT[] = { "Nsxiv.bar.font",            "monospace-8" };
+static const char *BAR_BG[]   = { "Rsxiv.bar.background",       NULL };
+static const char *BAR_FG[]   = { "Rsxiv.bar.foreground",       NULL };
+static const char *BAR_FONT[] = { "Rsxiv.bar.font",            "monospace-8" };
 
 /* if true, statusbar appears on top of the window */
 static const bool TOP_STATUSBAR = false;
@@ -72,7 +72,7 @@ static const bool ALPHA_LAYER = false;
 
 /* list of whitelisted/blacklisted directory for thumbnail cache
  * (overwritten via --cache-{allow,deny} option).
- * see THUMBNAIL CACHING section in nsxiv(1) manpage for more details.
+ * see THUMBNAIL CACHING section in rsxiv(1) manpage for more details.
  */
 static const char TNS_FILTERS[] = "";
 /* set to true to treat `TNS_FILTERS` as a blacklist instead */

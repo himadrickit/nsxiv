@@ -22,13 +22,13 @@ Contribution Guideline
 
 When contributing, make sure:
 
-  * Your contribution falls under nsxiv's scope and aim
+  * Your contribution falls under rsxiv's scope and aim
   * You follow the existing code style (see the "Code Style" section below)
   * You open the pull request from a new branch, not from master
   * To avoid using force pushes, especially for bigger patches. Only use them
     when there's merge conflicts.
 
-If your contribution is not suitable for general use, it will not be included in nsxiv.
+If your contribution is not suitable for general use, it will not be included in rsxiv.
 For changes that are very much up to preference, such as changing values in config.h,
 please do not open a pull request unless you have an objective explanation.
 
@@ -47,7 +47,7 @@ to work on. You can also filter the issues via label:
 Code Style
 ----------
 
-`nsxiv` mostly follows the [suckless code-style][sl], with a few exceptions.
+`rsxiv` mostly follows the [suckless code-style][sl], with a few exceptions.
 If your editor supports [.editorconfig](../.editorconfig) then you'll already be
 off to a good start without needing much manual intervention. Additionally we
 provide a [clang-format](./.clang-format) configuration for reference, which you
@@ -70,14 +70,14 @@ Using LLM ("AI") assistance is allowed within the following criteria:
 2. Do NOT use LLMs to write commit message, issue/pull-request description or
    comments. These are mediums for humans to communicate with other humans.
 
-Note: The first rule is more relaxed for the `nsxiv-extra` repo.
+Note: The first rule is more relaxed for the `rsxiv-extra` repo.
 
 
 Development workflow for maintainers
 ------------------------------------
 
 If we notice you contributing and/or showing interest in issues/pull requests,
-we may invite you to join the nsxiv org as a member. Being a member simply means
+we may invite you to join the rsxiv org as a member. Being a member simply means
 you will be able to approve, disapprove and merge pull requests.
 
 Our workflow regarding pull requests is the following:

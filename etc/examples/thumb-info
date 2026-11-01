@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Example for $XDG_CONFIG_HOME/nsxiv/exec/thumb-info
-# Called by nsxiv(1) whenever the selected thumbnail changes.
-# The output is displayed in nsxiv's status bar.
+# Example for $XDG_CONFIG_HOME/rsxiv/exec/thumb-info
+# Called by rsxiv(1) whenever the selected thumbnail changes.
+# The output is displayed in rsxiv's status bar.
 # Arguments:
 #   $1: path to image file (as provided by the user)
 #   $2: empty

@@ -1,8 +1,8 @@
-.TH NSXIV 1 nsxiv\-VERSION
+.TH RSXIV 1 rsxiv\-VERSION
 .SH NAME
-nsxiv \- Neo Simple X Image Viewer
+rsxiv \- Neo Simple X Image Viewer
 .SH SYNOPSIS
-.B nsxiv
+.B rsxiv
 .RB [ \-abcfHhiopqrtvZ0 ]
 .RB [ \-A
 .IR FRAMERATE ]
@@ -26,7 +26,7 @@ nsxiv \- Neo Simple X Image Viewer
 .RB [ \-\-no\-bgscript ]
 .IR FILE ...
 .SH DESCRIPTION
-nsxiv is a simple image viewer for X.
+rsxiv is a simple image viewer for X.
 .P
 It has two modes of operation: image and thumbnail mode. The default is image
 mode, in which only the current image is shown. In thumbnail mode a grid of
@@ -59,7 +59,7 @@ is equivalent to
 Remove all orphaned cache files from the thumbnail cache directory and exit.
 .TP
 .BI "\-e, \-\-embed " WID
-Embed nsxiv's window into window whose ID is
+Embed rsxiv's window into window whose ID is
 .IR WID .
 .TP
 .B "\-f, \-\-fullscreen"
@@ -93,10 +93,10 @@ Start at picture number NUM.
 Write list of all marked files to standard output when quitting. In combination
 with
 .B "\-i, \-\-stdin"
-nsxiv can be used as a visual filter/pipe.
+rsxiv can be used as a visual filter/pipe.
 .TP
 .B "\-p, \-\-private"
-Enable private mode, in which nsxiv does not write any cache or temporary files.
+Enable private mode, in which rsxiv does not write any cache or temporary files.
 .TP
 .B "\-q, \-\-quiet"
 Be quiet, and disable warnings to standard error stream.
@@ -201,10 +201,10 @@ Prefix the next command with a number (denoted via
 .IR count ).
 .TP
 .B q
-Quit nsxiv.
+Quit rsxiv.
 .TP
 .B Q
-Quit nsxiv, but additionally print the current filename when \-o is active and
+Quit rsxiv, but additionally print the current filename when \-o is active and
 no files have been marked.
 .TP
 .B Return
@@ -514,8 +514,8 @@ Zoom in.
 .B Button5
 Zoom out.
 .SH CONFIGURATION
-The following X resources are supported under "Nsxiv" (e.g.
-.B Nsxiv.bar.font
+The following X resources are supported under "Rsxiv" (e.g.
+.B Rsxiv.bar.font
 ):
 .TP
 .B window.background
@@ -547,15 +547,15 @@ root window background and published through the
 and
 .I ESETROOT_PMAP_ID
 properties, so compositors and pseudo-transparent terminals can pick it up. The
-pixmap is retained by the X server after nsxiv exits, and the one from a
+pixmap is retained by the X server after rsxiv exits, and the one from a
 previous wallpaper is released when it is replaced.
 .P
 Unless
 .B \-\-no\-bgscript
-is given, nsxiv also writes
-.I $XDG_CONFIG_HOME/nsxiv/nsxivbg
+is given, rsxiv also writes
+.I $XDG_CONFIG_HOME/rsxiv/rsxivbg
 (or
-.I ~/.config/nsxiv/nsxivbg
+.I ~/.config/rsxiv/rsxivbg
 if
 .I $XDG_CONFIG_HOME
 is unset), a shell script that restores the last wallpaper. It is the
@@ -564,9 +564,9 @@ counterpart of feh's
 and can be run from your X startup file.
 .SH WINDOW TITLE
 The window title can be replaced with the output of a user-provided script,
-which is called by nsxiv whenever any of the relevant information changes.
+which is called by rsxiv whenever any of the relevant information changes.
 The path of this script is
-.I $XDG_CONFIG_HOME/nsxiv/exec/win-title
+.I $XDG_CONFIG_HOME/rsxiv/exec/win-title
 and the arguments given to it (where "Optional" arguments might be empty) are:
 .IP $1 4
 resolved absolute path of the current file
@@ -581,18 +581,18 @@ image height (Optional: Disabled on thumbnails mode)
 .IP $6 4
 current zoom (Optional: Disabled on thumbnails mode)
 .P
-The term file is used rather than image as nsxiv does not precheck that the
+The term file is used rather than image as rsxiv does not precheck that the
 input files are valid images. Total file count may be different from the actual
 count of valid images.
 .P
-There is also an example script installed together with nsxiv as
+There is also an example script installed together with rsxiv as
 .IR EGPREFIX/win-title .
 .SH STATUS BAR
 The information displayed on the left side of the status bar can be replaced
 with the output of user-provided script.
 .P
-The script that is called by nsxiv whenever an image gets loaded is located at
-.I $XDG_CONFIG_HOME/nsxiv/exec/image-info
+The script that is called by rsxiv whenever an image gets loaded is located at
+.I $XDG_CONFIG_HOME/rsxiv/exec/image-info
 and the arguments given to it are:
 .IP $1 4
 path to image file (as provided by the user)
@@ -604,7 +604,7 @@ image height
 fully resolved path to the image file
 .P
 In thumbnail mode, the script that is called is located at
-.I $XDG_CONFIG_HOME/nsxiv/exec/thumb-info
+.I $XDG_CONFIG_HOME/rsxiv/exec/thumb-info
 and the arguments given to it are:
 .IP $1 4
 path to image file (as provided by the user)
@@ -615,25 +615,25 @@ empty
 .IP $4 4
 fully resolved path to the image file
 .P
-There are also example scripts installed together with nsxiv as
+There are also example scripts installed together with rsxiv as
 .IR EGPREFIX/image-info
 and
 .IR EGPREFIX/thumb-info .
 .SH EXTERNAL KEY HANDLER
 Additional external keyboard commands can be defined using a handler program
 located in
-.IR $XDG_CONFIG_HOME/nsxiv/exec/key-handler .
+.IR $XDG_CONFIG_HOME/rsxiv/exec/key-handler .
 The handler is invoked by pressing
 .BR Ctrl-x .
 The next key combo is passed as its first argument. Passed via stdin are the
 images to act upon: all marked images, if in thumbnail mode and at least one
-image has been marked, otherwise the current image. nsxiv(1) will block until
+image has been marked, otherwise the current image. rsxiv(1) will block until
 the handler terminates. It then checks which images have been modified and
 reloads them.
 
-By default nsxiv(1) will send one image per-line to stdin, however when using
+By default rsxiv(1) will send one image per-line to stdin, however when using
 \-0 the image list will be NULL separated and the environment variable
-"$NSXIV_USING_NULL" will be set to 1.
+"$RSXIV_USING_NULL" will be set to 1.
 
 The key combo argument has the following form: "[C-][M-][S-]KEY",
 where C/M/S indicate Ctrl/Meta(Alt)/Shift modifier states and KEY is the X
@@ -641,11 +641,11 @@ keysym as listed in /usr/include/X11/keysymdef.h without the "XK_" prefix.
 If KEY has an uppercase equivalent, S-KEY is resolved into it. For instance,
 K replaces S-k and Scedilla replaces S-scedilla, but S-Delete is sent as-is.
 
-There is also an example script installed together with nsxiv as
+There is also an example script installed together with rsxiv as
 .IR EGPREFIX/key-handler .
 .SH THUMBNAIL CACHING
-nsxiv stores all thumbnails under
-.IR $XDG_CACHE_HOME/nsxiv/ .
+rsxiv stores all thumbnails under
+.IR $XDG_CACHE_HOME/rsxiv/ .
 .P
 Use the command line option
 .I \-c
@@ -688,9 +688,10 @@ explosion-mental       <explosion0mental at gmail.com>
 .EE
 .SH CONTRIBUTORS
 .EX
-For a list of contributors, run `git shortlog -s` in the nsxiv git repository.
+For a list of contributors, run `git shortlog -s` in the rsxiv git repository.
 .EE
 .SH HOMEPAGE
+rsxiv is a fork of nsxiv. Upstream project:
 .TP
 Website:
 .EE

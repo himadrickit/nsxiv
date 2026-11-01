@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Shell script that checks for all possible build combination with TCC.
-# Usage: call the script while in the nsxiv root directory
+# Usage: call the script while in the rsxiv root directory
 
 set -- $(grep -o '^HAVE_[[:alpha:]]* ' config.mk)
 CFLAGS="$(sed '/^#/d' etc/woodpecker/CFLAGS | paste -d ' ' -s)"

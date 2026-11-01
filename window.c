@@ -1,23 +1,23 @@
 /* Copyright 2011-2020 Bert Muennich
  * Copyright 2021-2023 nsxiv contributors
  *
- * This file is a part of nsxiv.
+ * This file is a part of rsxiv.
  *
- * nsxiv is free software; you can redistribute it and/or modify
+ * rsxiv is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * nsxiv is distributed in the hope that it will be useful,
+ * rsxiv is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
+ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nsxiv.h"
+#include "rsxiv.h"
 #define INCLUDE_WINDOW_CONFIG
 #include "config.h"
 #include "icon/data.h"
@@ -39,7 +39,7 @@
 	win_draw_text(win, NULL, NULL, 0, 0, text, len, 0)
 #endif
 
-#define RES_CLASS "Nsxiv"
+#define RES_CLASS "Rsxiv"
 #define INIT_ATOM_(atom) \
 	atoms[ATOM_##atom] = XInternAtom(e->dpy, #atom, False);
 
@@ -202,7 +202,7 @@ void win_open(win_t *win)
 	char hostname[256];
 	XSetWindowAttributes attrs;
 	char res_class[] = RES_CLASS;
-	char res_name[] = "nsxiv";
+	char res_name[] = "rsxiv";
 
 	e = &win->env;
 	parent = options->embed ? options->embed : RootWindow(e->dpy, e->scr);

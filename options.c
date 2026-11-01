@@ -1,23 +1,23 @@
 /* Copyright 2011-2020 Bert Muennich
  * Copyright 2021-2023 nsxiv contributors
  *
- * This file is a part of nsxiv.
+ * This file is a part of rsxiv.
  *
- * nsxiv is free software; you can redistribute it and/or modify
+ * rsxiv is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published
  * by the Free Software Foundation; either version 2 of the License,
  * or (at your option) any later version.
  *
- * nsxiv is distributed in the hope that it will be useful,
+ * rsxiv is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
+ * along with rsxiv.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "nsxiv.h"
+#include "rsxiv.h"
 #include "version.h"
 #define INCLUDE_OPTIONS_CONFIG
 #include "config.h"

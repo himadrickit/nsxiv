@@ -1,10 +1,10 @@
-# nsxiv version
+# rsxiv version
 VERSION = 34
 
 # PREFIX for install
 PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/share/man
-EGPREFIX = $(PREFIX)/share/doc/nsxiv/examples
+EGPREFIX = $(PREFIX)/share/doc/rsxiv/examples
 
 # default value for optional dependencies. 1 = enabled, 0 = disabled
 OPT_DEP_DEFAULT = 1

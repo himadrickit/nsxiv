@@ -19,7 +19,7 @@ nsxiv_ldlibs = -lImlib2 -lX11 \
   $(LDLIBS)
 
 objs = autoreload.o commands.o image.o main.o options.o \
-  thumbs.o util.o window.o
+  thumbs.o util.o wallpaper.o window.o
 
 .SUFFIXES:
 .SUFFIXES: .c .o

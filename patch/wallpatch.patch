@@ -1,0 +1,571 @@
+diff --git a/Makefile b/Makefile
+index e94d546..ac38b2a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -19,7 +19,7 @@ nsxiv_ldlibs = -lImlib2 -lX11 \
+   $(LDLIBS)
+ 
+ objs = autoreload.o commands.o image.o main.o options.o \
+-  thumbs.o util.o window.o
++  thumbs.o util.o wallpaper.o window.o
+ 
+ .SUFFIXES:
+ .SUFFIXES: .c .o
+diff --git a/commands.c b/commands.c
+index 3257b1e..43b861e 100644
+--- a/commands.c
++++ b/commands.c
+@@ -112,6 +112,12 @@ bool cg_toggle_bar(arg_t _)
+ 	return true;
+ }
+ 
++bool cg_set_wallpaper(arg_t mode)
++{
++	wp_set(&files[fileidx], (wpmode_t)mode);
++	return false;
++}
++
+ bool cg_prefix_external(arg_t _)
+ {
+ 	handle_key_handler(true);
+diff --git a/commands.h b/commands.h
+index 4e694f0..dace73b 100644
+--- a/commands.h
++++ b/commands.h
+@@ -17,6 +17,7 @@ bool cg_reload_image(arg_t);
+ bool cg_remove_image(arg_t);
+ bool cg_reverse_marks(arg_t);
+ bool cg_scroll_screen(arg_t);
++bool cg_set_wallpaper(arg_t);
+ bool cg_switch_mode(arg_t);
+ bool cg_toggle_bar(arg_t);
+ bool cg_toggle_fullscreen(arg_t);
+@@ -63,6 +64,7 @@ bool ct_select(arg_t);
+ #define g_remove_image { cg_remove_image, MODE_ALL }
+ #define g_reverse_marks { cg_reverse_marks, MODE_ALL }
+ #define g_scroll_screen { cg_scroll_screen, MODE_ALL }
++#define g_set_wallpaper { cg_set_wallpaper, MODE_ALL }
+ #define g_switch_mode { cg_switch_mode, MODE_ALL }
+ #define g_toggle_bar { cg_toggle_bar, MODE_ALL }
+ #define g_toggle_fullscreen { cg_toggle_fullscreen, MODE_ALL }
+diff --git a/config.def.h b/config.def.h
+index ead1509..d824a47 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -109,6 +109,8 @@ static const keymap_t keys[] = {
+ 	{ 0,            XK_G,             g_n_or_last,          None },
+ 	{ 0,            XK_r,             g_reload_image,       None },
+ 	{ 0,            XK_D,             g_remove_image,       None },
++	/* set the current image as wallpaper; WP_CENTER, WP_FILL, WP_MAX, WP_SCALE or WP_TILE */
++	{ 0,            XK_x,             g_set_wallpaper,      WP_FILL },
+ 	{ ControlMask,  XK_h,             g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_Left,          g_scroll_screen,      DIR_LEFT },
+ 	{ ControlMask,  XK_j,             g_scroll_screen,      DIR_DOWN },
+diff --git a/etc/nsxiv.1 b/etc/nsxiv.1
+index ccc010a..00fcd5f 100644
+--- a/etc/nsxiv.1
++++ b/etc/nsxiv.1
+@@ -22,6 +22,8 @@ nsxiv \- Neo Simple X Image Viewer
+ .IR MODE ]
+ .RB [ \-z
+ .IR ZOOM ]
++.RB [ \-\-bg\-center | \-\-bg\-fill | \-\-bg\-max | \-\-bg\-scale | \-\-bg\-tile ]
++.RB [ \-\-no\-bgscript ]
+ .IR FILE ...
+ .SH DESCRIPTION
+ nsxiv is a simple image viewer for X.
+@@ -156,6 +158,40 @@ only the final one takes effect.
+ Update the thumbnail cache (creating them if necessary) of the given arguments
+ and exit. Can be used along with
+ .BR "\-\-clean\-cache" .
++.TP
++.B "\-\-bg\-center"
++Set the first given image (see
++.BR \-n )
++as the X root window background, centered on the screen, and exit without
++opening a window.
++Mirrors the option of the same name in feh.
++.TP
++.B "\-\-bg\-fill"
++Like
++.BR \-\-bg\-center ,
++but scale the image to cover the whole screen, preserving its aspect ratio and
++cropping whatever overflows.
++.TP
++.B "\-\-bg\-max"
++Like
++.BR \-\-bg\-center ,
++but scale the image to the largest size that fits on the screen, preserving its
++aspect ratio. Unused screen area is filled with black.
++.TP
++.B "\-\-bg\-scale"
++Like
++.BR \-\-bg\-center ,
++but stretch the image to exactly the screen size, ignoring its aspect ratio.
++.TP
++.B "\-\-bg\-tile"
++Like
++.BR \-\-bg\-center ,
++but tile the image across the screen at its original size.
++.TP
++.B "\-\-no\-bgscript"
++Do not write the wallpaper restore script (see
++.BR WALLPAPER )
++when setting a wallpaper.
+ .SH KEYBOARD COMMANDS
+ .SS General
+ The following keyboard commands are available in both image and thumbnail modes:
+@@ -197,6 +233,12 @@ Reload image.
+ .B D
+ Remove current image from file list and go to next image.
+ .TP
++.B x
++Set current image as the wallpaper, using the fill mode (see
++.BR \-\-bg\-fill ).
++The mode is configurable in
++.IR config.h .
++.TP
+ .BR Ctrl-h ", " Ctrl-Left
+ Scroll left one screen width.
+ .TP
+@@ -498,6 +540,28 @@ Please see xrdb(1) on how to change them.
+ .LP
+ An X resources entry with an empty value means the default
+ (defined in config.h) will be used.
++.SH WALLPAPER
++The wallpaper is rendered to a pixmap the size of the screen, installed as the
++root window background and published through the
++.I _XROOTPMAP_ID
++and
++.I ESETROOT_PMAP_ID
++properties, so compositors and pseudo-transparent terminals can pick it up. The
++pixmap is retained by the X server after nsxiv exits, and the one from a
++previous wallpaper is released when it is replaced.
++.P
++Unless
++.B \-\-no\-bgscript
++is given, nsxiv also writes
++.I $XDG_CONFIG_HOME/nsxiv/nsxivbg
++(or
++.I ~/.config/nsxiv/nsxivbg
++if
++.I $XDG_CONFIG_HOME
++is unset), a shell script that restores the last wallpaper. It is the
++counterpart of feh's
++.IR ~/.fehbg ,
++and can be run from your X startup file.
+ .SH WINDOW TITLE
+ The window title can be replaced with the output of a user-provided script,
+ which is called by nsxiv whenever any of the relevant information changes.
+diff --git a/main.c b/main.c
+index 027d91f..9e5a708 100644
+--- a/main.c
++++ b/main.c
+@@ -956,6 +956,9 @@ int main(int argc, char *argv[])
+ 	filecnt = fileidx;
+ 	fileidx = options->startnum < filecnt ? options->startnum : 0;
+ 
++	if (options->set_bg)
++		exit(wp_set(&files[fileidx], options->bg_mode) ? EXIT_SUCCESS : EXIT_FAILURE);
++
+ 	if (options->update_cache) {
+ 		if (options->private_mode) {
+ 			error(0, 0, "private mode was enabled, not caching anything");
+diff --git a/nsxiv.h b/nsxiv.h
+index 6b5bf0a..a94e873 100644
+--- a/nsxiv.h
++++ b/nsxiv.h
+@@ -86,6 +86,19 @@ typedef enum {
+ 	DRAG_ABSOLUTE
+ } dragmode_t;
+ 
++/* wallpaper placement, same meaning as feh's --bg-* options.
++ * must be kept in the same order as the OPT_BG_* values in options.c
++ */
++typedef enum {
++	WP_CENTER,
++	WP_FILL,
++	WP_MAX,
++	WP_SCALE,
++	WP_TILE,
++
++	WP_COUNT
++} wpmode_t;
++
+ typedef enum {
+ 	CURSOR_ARROW,
+ 	CURSOR_DRAG_ABSOLUTE,
+@@ -282,6 +295,11 @@ struct opt {
+ 	bool clean_cache;
+ 	bool update_cache;
+ 	bool private_mode;
++
++	/* wallpaper: */
++	bool set_bg;
++	wpmode_t bg_mode;
++	bool write_bgscript;
+ };
+ 
+ extern const opt_t *options;
+@@ -377,6 +395,11 @@ void construct_argv(char**, unsigned int, ...);
+ pid_t spawn(int*, int*, int, char *const []);
+ 
+ 
++/* wallpaper.c */
++
++bool wp_set(const fileinfo_t*, wpmode_t);
++
++
+ /* window.c */
+ 
+ #include <X11/Xutil.h>
+diff --git a/options.c b/options.c
+index a6aba4f..a650000 100644
+--- a/options.c
++++ b/options.c
+@@ -44,7 +44,8 @@ void print_usage(FILE *stream)
+ 	fprintf(stream,
+ 	        "usage: %s [-abcfHhiopqrtvZ0] [-A FRAMERATE] [-e WID] [-G GAMMA] "
+ 	        "[-g GEOMETRY] [-N NAME] [-n NUM] [-S DELAY] [-s MODE] "
+-	        "[-z ZOOM] FILES...\n",
++	        "[-z ZOOM] [--bg-center|--bg-fill|--bg-max|--bg-scale|--bg-tile] "
++	        "FILES...\n",
+ 	        progname);
+ }
+ 
+@@ -88,7 +89,14 @@ void parse_options(int argc, char **argv)
+ 		OPT_CD,
+ 		OPT_UC,
+ 		OPT_HIDDEN,
+-		OPT_AF
++		OPT_AF,
++		/* wallpaper modes, keep in the same order as wpmode_t */
++		OPT_BG_CENTER,
++		OPT_BG_FILL,
++		OPT_BG_MAX,
++		OPT_BG_SCALE,
++		OPT_BG_TILE,
++		OPT_NO_BGSCRIPT
+ 	};
+ 	static const struct optparse_long longopts[] = {
+ 		{ "framerate",      'A',     OPTPARSE_REQUIRED },
+@@ -127,6 +135,12 @@ void parse_options(int argc, char **argv)
+ 		{ "cache-allow",   OPT_CA,   OPTPARSE_REQUIRED },
+ 		{ "cache-deny",    OPT_CD,   OPTPARSE_REQUIRED },
+ 		{ "update-cache",  OPT_UC,   OPTPARSE_NONE },
++		{ "bg-center",  OPT_BG_CENTER, OPTPARSE_NONE },
++		{ "bg-fill",    OPT_BG_FILL,   OPTPARSE_NONE },
++		{ "bg-max",     OPT_BG_MAX,    OPTPARSE_NONE },
++		{ "bg-scale",   OPT_BG_SCALE,  OPTPARSE_NONE },
++		{ "bg-tile",    OPT_BG_TILE,   OPTPARSE_NONE },
++		{ "no-bgscript", OPT_NO_BGSCRIPT, OPTPARSE_NONE },
+ 		{ 0 }, /* end */
+ 	};
+ 
+@@ -169,6 +183,10 @@ void parse_options(int argc, char **argv)
+ 	_options.update_cache = false;
+ 	_options.private_mode = false;
+ 
++	_options.set_bg = false;
++	_options.bg_mode = WP_FILL;
++	_options.write_bgscript = true;
++
+ 	if (argc > 0) {
+ 		s = strrchr(argv[0], '/');
+ 		progname = s != NULL && s[1] != '\0' ? s + 1 : argv[0];
+@@ -303,6 +321,14 @@ void parse_options(int argc, char **argv)
+ 		case OPT_UC:
+ 			_options.update_cache = true;
+ 			break;
++		case OPT_BG_CENTER: case OPT_BG_FILL: case OPT_BG_MAX:
++		case OPT_BG_SCALE: case OPT_BG_TILE:
++			_options.set_bg = true;
++			_options.bg_mode = (wpmode_t)(opt - OPT_BG_CENTER);
++			break;
++		case OPT_NO_BGSCRIPT:
++			_options.write_bgscript = false;
++			break;
+ 		}
+ 	}
+ 
+diff --git a/wallpaper.c b/wallpaper.c
+new file mode 100644
+index 0000000..86f7795
+--- /dev/null
++++ b/wallpaper.c
+@@ -0,0 +1,275 @@
++/* Copyright 2021-2023 nsxiv contributors
++ *
++ * This file is a part of nsxiv.
++ *
++ * nsxiv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License,
++ * or (at your option) any later version.
++ *
++ * nsxiv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with nsxiv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++/*
++ * Wallpaper support, modelled after feh's --bg-* options.
++ *
++ * The image is rendered into a pixmap the size of the screen, which is
++ * installed as the root window background and advertised through the
++ * _XROOTPMAP_ID / ESETROOT_PMAP_ID properties (the Esetroot convention, so
++ * compositors and transparent terminals pick it up). The pixmap is created
++ * on a private X connection that is closed with RetainPermanent, so it
++ * outlives nsxiv.
++ */
++
++#include "nsxiv.h"
++
++#include <errno.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++#include <X11/Xatom.h>
++#include <X11/Xlib.h>
++
++static const char *const wp_flags[WP_COUNT] = {
++	"--bg-center", "--bg-fill", "--bg-max", "--bg-scale", "--bg-tile"
++};
++
++static int wp_xerror(Display *dpy, XErrorEvent *ev)
++{
++	(void)dpy;
++	(void)ev;
++	return 0;
++}
++
++/* scale (w, h) to fit inside (bw, bh) or, if cover is set, to cover it */
++static void wp_fit(int w, int h, int bw, int bh, bool cover, int *nw, int *nh)
++{
++	/* compare aspect ratios without floating point: bw/w vs bh/h */
++	bool width_limited = (long long)bw * h <= (long long)bh * w;
++
++	if (width_limited != cover) {
++		*nw = bw;
++		*nh = (int)(((long long)h * bw + (cover ? w - 1 : 0)) / w);
++	} else {
++		*nh = bh;
++		*nw = (int)(((long long)w * bh + (cover ? h - 1 : 0)) / h);
++	}
++	if (*nw < 1)
++		*nw = 1;
++	if (*nh < 1)
++		*nh = 1;
++}
++
++/* draw im onto the drawable (pm) according to mode. Imlib's context must
++ * already point at the display and drawable.
++ */
++static void wp_render(Imlib_Image im, int sw, int sh, wpmode_t mode)
++{
++	int w, h, x, y, nw, nh;
++
++	imlib_context_set_image(im);
++	w = imlib_image_get_width();
++	h = imlib_image_get_height();
++
++	switch (mode) {
++	case WP_CENTER:
++		imlib_render_image_on_drawable((sw - w) / 2, (sh - h) / 2);
++		break;
++	case WP_FILL:
++	case WP_MAX:
++		wp_fit(w, h, sw, sh, mode == WP_FILL, &nw, &nh);
++		imlib_render_image_on_drawable_at_size((sw - nw) / 2, (sh - nh) / 2, nw, nh);
++		break;
++	case WP_SCALE:
++		imlib_render_image_on_drawable_at_size(0, 0, sw, sh);
++		break;
++	case WP_TILE:
++		for (y = 0; y < sh; y += h) {
++			for (x = 0; x < sw; x += w)
++				imlib_render_image_on_drawable(x, y);
++		}
++		break;
++	case WP_COUNT:
++		break;
++	}
++}
++
++/* publish pm as the root pixmap, like Esetroot does */
++static void wp_set_root(Display *dpy, Window root, Pixmap pm)
++{
++	Atom prop_root = XInternAtom(dpy, "_XROOTPMAP_ID", False);
++	Atom prop_eset = XInternAtom(dpy, "ESETROOT_PMAP_ID", False);
++	Atom type;
++	int format;
++	unsigned long length, after;
++	unsigned char *data_root = NULL, *data_eset = NULL;
++	int (*old_handler)(Display *, XErrorEvent *);
++
++	old_handler = XSetErrorHandler(wp_xerror);
++
++	/* free the pixmap of the previous wallpaper, but only if it was set
++	 * following the Esetroot convention (both properties agree).
++	 */
++	XGetWindowProperty(dpy, root, prop_root, 0L, 1L, False, AnyPropertyType,
++	                   &type, &format, &length, &after, &data_root);
++	if (data_root != NULL && type == XA_PIXMAP && format == 32 && length == 1) {
++		XGetWindowProperty(dpy, root, prop_eset, 0L, 1L, False, AnyPropertyType,
++		                   &type, &format, &length, &after, &data_eset);
++		if (data_eset != NULL && type == XA_PIXMAP && format == 32 && length == 1 &&
++		    *(Pixmap *)data_root == *(Pixmap *)data_eset)
++			XKillClient(dpy, *(Pixmap *)data_root);
++	}
++	if (data_root != NULL)
++		XFree(data_root);
++	if (data_eset != NULL)
++		XFree(data_eset);
++
++	XChangeProperty(dpy, root, prop_root, XA_PIXMAP, 32, PropModeReplace,
++	                (unsigned char *)&pm, 1);
++	XChangeProperty(dpy, root, prop_eset, XA_PIXMAP, 32, PropModeReplace,
++	                (unsigned char *)&pm, 1);
++	XSetWindowBackgroundPixmap(dpy, root, pm);
++	XClearWindow(dpy, root);
++	XSync(dpy, False);
++
++	XSetErrorHandler(old_handler);
++}
++
++static void wp_quote(FILE *f, const char *s)
++{
++	fputc('\'', f);
++	for (; *s != '\0'; s++) {
++		if (*s == '\'')
++			fputs("'\\''", f);
++		else
++			fputc(*s, f);
++	}
++	fputc('\'', f);
++}
++
++/* write a small shell script that restores the wallpaper (feh's ~/.fehbg) */
++static void wp_write_script(const fileinfo_t *file, wpmode_t mode)
++{
++	const char *base, *abspath, *suffix = "";
++	char *path, *dir, *slash;
++	size_t n;
++	FILE *f;
++
++	if ((abspath = file_realpath(file, false)) == NULL)
++		return;
++	if ((base = getenv("XDG_CONFIG_HOME")) == NULL || base[0] == '\0') {
++		if ((base = getenv("HOME")) == NULL || base[0] == '\0')
++			return;
++		suffix = "/.config";
++	}
++
++	n = strlen(base) + strlen(suffix) + sizeof("/nsxiv/nsxivbg");
++	path = emalloc(n);
++	snprintf(path, n, "%s%s/nsxiv/nsxivbg", base, suffix);
++
++	dir = estrdup(path);
++	if ((slash = strrchr(dir, '/')) != NULL)
++		*slash = '\0';
++	if (r_mkdir(dir) != 0) {
++		/* r_mkdir() already reported the problem */
++	} else if ((f = fopen(path, "w")) == NULL) {
++		error(0, errno, "%s", path);
++	} else {
++		fputs("#!/bin/sh\n", f);
++		fprintf(f, "%s --no-bgscript %s ", progname, wp_flags[mode]);
++		wp_quote(f, abspath);
++		fputc('\n', f);
++		if (fclose(f) != 0)
++			error(0, errno, "%s", path);
++		else if (chmod(path, 0755) != 0)
++			error(0, errno, "%s", path);
++	}
++	free(dir);
++	free(path);
++}
++
++bool wp_set(const fileinfo_t *file, wpmode_t mode)
++{
++	Imlib_Image im, prev;
++	Imlib_Context ctx;
++	Display *dpy;
++	Window root;
++	Pixmap pm;
++	GC gc;
++	int scr, sw, sh, depth;
++	const char *fmt;
++
++	if ((int)mode < 0 || (int)mode >= WP_COUNT)
++		return false;
++
++	/* img_open() makes the loaded image current, remember the old one so
++	 * the caller's Imlib state is untouched afterwards.
++	 */
++	prev = imlib_context_get_image();
++	if ((im = img_open(file)) == NULL) {
++		if (!(file->flags & FF_WARN)) /* img_open() didn't say why */
++			error(0, 0, "%s: Error opening image", file->name);
++		if (prev != NULL)
++			imlib_context_set_image(prev);
++		return false;
++	}
++	(void)fmt;
++#if HAVE_LIBEXIF
++	if ((fmt = imlib_image_format()) != NULL && !STREQ(fmt, "jpeg") && !STREQ(fmt, "jpg"))
++		exif_auto_orientate(file);
++#endif
++
++	/* private connection: its resources are kept alive after it closes */
++	if ((dpy = XOpenDisplay(NULL)) == NULL) {
++		error(0, 0, "Error opening X display");
++		img_free(im, false);
++		if (prev != NULL)
++			imlib_context_set_image(prev);
++		return false;
++	}
++	XSetCloseDownMode(dpy, RetainPermanent);
++
++	scr = DefaultScreen(dpy);
++	root = RootWindow(dpy, scr);
++	sw = DisplayWidth(dpy, scr);
++	sh = DisplayHeight(dpy, scr);
++	depth = DefaultDepth(dpy, scr);
++
++	pm = XCreatePixmap(dpy, root, sw, sh, depth);
++	gc = XCreateGC(dpy, pm, 0, NULL);
++	XSetForeground(dpy, gc, BlackPixel(dpy, scr));
++	XFillRectangle(dpy, pm, gc, 0, 0, sw, sh);
++	XFreeGC(dpy, gc);
++
++	ctx = imlib_context_new();
++	imlib_context_push(ctx);
++	imlib_context_set_display(dpy);
++	imlib_context_set_visual(DefaultVisual(dpy, scr));
++	imlib_context_set_colormap(DefaultColormap(dpy, scr));
++	imlib_context_set_drawable(pm);
++	imlib_context_set_blend(1);
++	imlib_context_set_anti_alias(1);
++	wp_render(im, sw, sh, mode);
++	imlib_context_pop();
++	imlib_context_free(ctx);
++
++	wp_set_root(dpy, root, pm);
++	XCloseDisplay(dpy);
++
++	img_free(im, false);
++	if (prev != NULL)
++		imlib_context_set_image(prev);
++
++	if (options->write_bgscript)
++		wp_write_script(file, mode);
++	return true;
++}

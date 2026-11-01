@@ -17,6 +17,7 @@ bool cg_reload_image(arg_t);
 bool cg_remove_image(arg_t);
 bool cg_reverse_marks(arg_t);
 bool cg_scroll_screen(arg_t);
+bool cg_set_wallpaper(arg_t);
 bool cg_switch_mode(arg_t);
 bool cg_toggle_bar(arg_t);
 bool cg_toggle_fullscreen(arg_t);
@@ -63,6 +64,7 @@ bool ct_select(arg_t);
 #define g_remove_image { cg_remove_image, MODE_ALL }
 #define g_reverse_marks { cg_reverse_marks, MODE_ALL }
 #define g_scroll_screen { cg_scroll_screen, MODE_ALL }
+#define g_set_wallpaper { cg_set_wallpaper, MODE_ALL }
 #define g_switch_mode { cg_switch_mode, MODE_ALL }
 #define g_toggle_bar { cg_toggle_bar, MODE_ALL }
 #define g_toggle_fullscreen { cg_toggle_fullscreen, MODE_ALL }

@@ -86,6 +86,19 @@ typedef enum {
 	DRAG_ABSOLUTE
 } dragmode_t;
 
+/* wallpaper placement, same meaning as feh's --bg-* options.
+ * must be kept in the same order as the OPT_BG_* values in options.c
+ */
+typedef enum {
+	WP_CENTER,
+	WP_FILL,
+	WP_MAX,
+	WP_SCALE,
+	WP_TILE,
+
+	WP_COUNT
+} wpmode_t;
+
 typedef enum {
 	CURSOR_ARROW,
 	CURSOR_DRAG_ABSOLUTE,
@@ -282,6 +295,11 @@ struct opt {
 	bool clean_cache;
 	bool update_cache;
 	bool private_mode;
+
+	/* wallpaper: */
+	bool set_bg;
+	wpmode_t bg_mode;
+	bool write_bgscript;
 };
 
 extern const opt_t *options;
@@ -375,6 +393,11 @@ char* r_readdir(r_dir_t*, bool);
 int r_mkdir(char*);
 void construct_argv(char**, unsigned int, ...);
 pid_t spawn(int*, int*, int, char *const []);
+
+
+/* wallpaper.c */
+
+bool wp_set(const fileinfo_t*, wpmode_t);
 
 
 /* window.c */

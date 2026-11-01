@@ -956,6 +956,9 @@ int main(int argc, char *argv[])
 	filecnt = fileidx;
 	fileidx = options->startnum < filecnt ? options->startnum : 0;
 
+	if (options->set_bg)
+		exit(wp_set(&files[fileidx], options->bg_mode) ? EXIT_SUCCESS : EXIT_FAILURE);
+
 	if (options->update_cache) {
 		if (options->private_mode) {
 			error(0, 0, "private mode was enabled, not caching anything");

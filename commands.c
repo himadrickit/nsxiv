@@ -112,6 +112,12 @@ bool cg_toggle_bar(arg_t _)
 	return true;
 }
 
+bool cg_set_wallpaper(arg_t mode)
+{
+	wp_set(&files[fileidx], (wpmode_t)mode);
+	return false;
+}
+
 bool cg_prefix_external(arg_t _)
 {
 	handle_key_handler(true);

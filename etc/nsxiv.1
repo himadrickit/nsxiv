@@ -22,6 +22,8 @@ nsxiv \- Neo Simple X Image Viewer
 .IR MODE ]
 .RB [ \-z
 .IR ZOOM ]
+.RB [ \-\-bg\-center | \-\-bg\-fill | \-\-bg\-max | \-\-bg\-scale | \-\-bg\-tile ]
+.RB [ \-\-no\-bgscript ]
 .IR FILE ...
 .SH DESCRIPTION
 nsxiv is a simple image viewer for X.
@@ -156,6 +158,40 @@ only the final one takes effect.
 Update the thumbnail cache (creating them if necessary) of the given arguments
 and exit. Can be used along with
 .BR "\-\-clean\-cache" .
+.TP
+.B "\-\-bg\-center"
+Set the first given image (see
+.BR \-n )
+as the X root window background, centered on the screen, and exit without
+opening a window.
+Mirrors the option of the same name in feh.
+.TP
+.B "\-\-bg\-fill"
+Like
+.BR \-\-bg\-center ,
+but scale the image to cover the whole screen, preserving its aspect ratio and
+cropping whatever overflows.
+.TP
+.B "\-\-bg\-max"
+Like
+.BR \-\-bg\-center ,
+but scale the image to the largest size that fits on the screen, preserving its
+aspect ratio. Unused screen area is filled with black.
+.TP
+.B "\-\-bg\-scale"
+Like
+.BR \-\-bg\-center ,
+but stretch the image to exactly the screen size, ignoring its aspect ratio.
+.TP
+.B "\-\-bg\-tile"
+Like
+.BR \-\-bg\-center ,
+but tile the image across the screen at its original size.
+.TP
+.B "\-\-no\-bgscript"
+Do not write the wallpaper restore script (see
+.BR WALLPAPER )
+when setting a wallpaper.
 .SH KEYBOARD COMMANDS
 .SS General
 The following keyboard commands are available in both image and thumbnail modes:
@@ -196,6 +232,12 @@ Reload image.
 .TP
 .B D
 Remove current image from file list and go to next image.
+.TP
+.B x
+Set current image as the wallpaper, using the fill mode (see
+.BR \-\-bg\-fill ).
+The mode is configurable in
+.IR config.h .
 .TP
 .BR Ctrl-h ", " Ctrl-Left
 Scroll left one screen width.
@@ -498,6 +540,28 @@ Please see xrdb(1) on how to change them.
 .LP
 An X resources entry with an empty value means the default
 (defined in config.h) will be used.
+.SH WALLPAPER
+The wallpaper is rendered to a pixmap the size of the screen, installed as the
+root window background and published through the
+.I _XROOTPMAP_ID
+and
+.I ESETROOT_PMAP_ID
+properties, so compositors and pseudo-transparent terminals can pick it up. The
+pixmap is retained by the X server after nsxiv exits, and the one from a
+previous wallpaper is released when it is replaced.
+.P
+Unless
+.B \-\-no\-bgscript
+is given, nsxiv also writes
+.I $XDG_CONFIG_HOME/nsxiv/nsxivbg
+(or
+.I ~/.config/nsxiv/nsxivbg
+if
+.I $XDG_CONFIG_HOME
+is unset), a shell script that restores the last wallpaper. It is the
+counterpart of feh's
+.IR ~/.fehbg ,
+and can be run from your X startup file.
 .SH WINDOW TITLE
 The window title can be replaced with the output of a user-provided script,
 which is called by nsxiv whenever any of the relevant information changes.

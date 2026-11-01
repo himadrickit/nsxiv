@@ -44,7 +44,8 @@ void print_usage(FILE *stream)
 	fprintf(stream,
 	        "usage: %s [-abcfHhiopqrtvZ0] [-A FRAMERATE] [-e WID] [-G GAMMA] "
 	        "[-g GEOMETRY] [-N NAME] [-n NUM] [-S DELAY] [-s MODE] "
-	        "[-z ZOOM] FILES...\n",
+	        "[-z ZOOM] [--bg-center|--bg-fill|--bg-max|--bg-scale|--bg-tile] "
+	        "FILES...\n",
 	        progname);
 }
 
@@ -88,7 +89,14 @@ void parse_options(int argc, char **argv)
 		OPT_CD,
 		OPT_UC,
 		OPT_HIDDEN,
-		OPT_AF
+		OPT_AF,
+		/* wallpaper modes, keep in the same order as wpmode_t */
+		OPT_BG_CENTER,
+		OPT_BG_FILL,
+		OPT_BG_MAX,
+		OPT_BG_SCALE,
+		OPT_BG_TILE,
+		OPT_NO_BGSCRIPT
 	};
 	static const struct optparse_long longopts[] = {
 		{ "framerate",      'A',     OPTPARSE_REQUIRED },
@@ -127,6 +135,12 @@ void parse_options(int argc, char **argv)
 		{ "cache-allow",   OPT_CA,   OPTPARSE_REQUIRED },
 		{ "cache-deny",    OPT_CD,   OPTPARSE_REQUIRED },
 		{ "update-cache",  OPT_UC,   OPTPARSE_NONE },
+		{ "bg-center",  OPT_BG_CENTER, OPTPARSE_NONE },
+		{ "bg-fill",    OPT_BG_FILL,   OPTPARSE_NONE },
+		{ "bg-max",     OPT_BG_MAX,    OPTPARSE_NONE },
+		{ "bg-scale",   OPT_BG_SCALE,  OPTPARSE_NONE },
+		{ "bg-tile",    OPT_BG_TILE,   OPTPARSE_NONE },
+		{ "no-bgscript", OPT_NO_BGSCRIPT, OPTPARSE_NONE },
 		{ 0 }, /* end */
 	};
 
@@ -168,6 +182,10 @@ void parse_options(int argc, char **argv)
 	_options.clean_cache = false;
 	_options.update_cache = false;
 	_options.private_mode = false;
+
+	_options.set_bg = false;
+	_options.bg_mode = WP_FILL;
+	_options.write_bgscript = true;
 
 	if (argc > 0) {
 		s = strrchr(argv[0], '/');
@@ -302,6 +320,14 @@ void parse_options(int argc, char **argv)
 			break;
 		case OPT_UC:
 			_options.update_cache = true;
+			break;
+		case OPT_BG_CENTER: case OPT_BG_FILL: case OPT_BG_MAX:
+		case OPT_BG_SCALE: case OPT_BG_TILE:
+			_options.set_bg = true;
+			_options.bg_mode = (wpmode_t)(opt - OPT_BG_CENTER);
+			break;
+		case OPT_NO_BGSCRIPT:
+			_options.write_bgscript = false;
 			break;
 		}
 	}
